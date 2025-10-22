@@ -40,31 +40,28 @@ jobs:
 
       # --- BACKEND ---
 
-      # 1) Копируем сборку и node_modules + манифест
-      - name: Deploy backend build
+      # 1) Деплой API через pnpm deploy (собирает правильные node_modules)
+      - name: Deploy API (pnpm deploy)
+        run: pnpm -w deploy --filter ./apps/api --prod --dest "C:\srv\mnemos-api"
+
+      # (если нужен .env из репо — докинем отдельно)
+      - name: Copy .env if exists
         shell: cmd
         run: |
           @echo off
-          if not exist "%TARGET_API%" mkdir "%TARGET_API%"
-          rem dist
-          robocopy apps\api\dist "%TARGET_API%\dist" /MIR
-          if %ERRORLEVEL% GTR 7 exit /B %ERRORLEVEL%
-          rem node_modules (продовые, уже установлены шагом выше)
-          robocopy apps\api\node_modules "%TARGET_API%\node_modules" /MIR
-          if %ERRORLEVEL% GTR 7 exit /B %ERRORLEVEL%
-          rem package.json (lock в цель НЕ копируем — он не нужен)
-          copy /Y apps\api\package.json "%TARGET_API%\"
-          if exist apps\api\.env copy /Y apps\api\.env "%TARGET_API%\"
-
-      - name: Ensure PM2 is installed globally
-        run: npm i -g pm2 pm2-windows-service
+          if exist apps\api\.env copy /Y apps\api\.env "C:\srv\mnemos-api\"
 
       # 2) Перезапуск через PM2
       - name: Reload API with PM2
         shell: cmd
+        env:
+          PM2_HOME: C:\ProgramData\pm2
         run: |
           @echo off
-          where pm2 >nul 2>&1 || (echo [ERROR] pm2 not found. Run 'npm i -g pm2' on the server & exit /b 1)
-          pm2 describe mnemos-api >nul 2>&1 || pm2 start "%TARGET_API%\dist\main.js" --name mnemos-api --cwd "%TARGET_API%" --update-env --time
-          pm2 reload mnemos-api
-          pm2 save
+          for /f "delims=" %%i in ('npm prefix -g') do set "NPM_PREFIX=%%i"
+          set "PM2=%NPM_PREFIX%\pm2.cmd"
+          if not exist "%PM2%" ( echo [ERROR] pm2 CLI not found & exit /b 1 )
+          
+          "%PM2%" describe mnemos-api >nul 2>&1 || "%PM2%" start "C:\srv\mnemos-api\dist\main.js" --name mnemos-api --cwd "C:\srv\mnemos-api" --update-env --time
+          "%PM2%" reload mnemos-api
+          "%PM2%" save
