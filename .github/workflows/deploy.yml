@@ -49,8 +49,7 @@ jobs:
           robocopy apps\api\dist "%TARGET_API%\dist" /MIR
           if %ERRORLEVEL% GTR 7 exit /B %ERRORLEVEL%
           copy /Y apps\api\package.json "%TARGET_API%\"
-          copy /Y apps\api\pnpm-lock.yaml "%TARGET_API%\"
-          if exist apps\api\pnpm-lock.yaml copy /Y apps\api\pnpm-lock.yaml "%TARGET_API%\"
+          if exist pnpm-lock.yaml copy /Y pnpm-lock.yaml "%TARGET_API%\"
           if exist apps\api\.env copy /Y apps\api\.env "%TARGET_API%\"
 
       # 2) Устанавливаем прод-зависимости прямо в целевой папке
