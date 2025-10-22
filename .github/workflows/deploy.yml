@@ -35,18 +35,21 @@ jobs:
         run: |
           if not exist "%TARGET_WEB%" mkdir "%TARGET_WEB%"
           robocopy apps\web\dist "%TARGET_WEB%" /MIR
+          if %ERRORLEVEL% LEQ 7 exit /B 0
+          exit /B %ERRORLEVEL%
 
       # --- BACKEND ---
       - name: Stop API service (if running)
         shell: cmd
         run: sc stop %API_SERVICE% || echo not running
 
-      - name: Sync backend build
+      - name: Deploy backend build
         shell: cmd
         run: |
           if not exist "%TARGET_API%" mkdir "%TARGET_API%"
           robocopy apps\api\dist "%TARGET_API%\dist" /MIR
-          copy /Y apps\api\package.json "%TARGET_API%\package.json"
+          if %ERRORLEVEL% LEQ 7 exit /B 0
+          exit /B %ERRORLEVEL%
 
       - name: Install production dependencies for API
         working-directory: C:\srv\mnemos-api
