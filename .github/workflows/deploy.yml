@@ -38,10 +38,16 @@ jobs:
           if %ERRORLEVEL% LEQ 7 exit /B 0
           exit /B %ERRORLEVEL%
 
-      # --- BACKEND ---
-      - name: Stop API service (if running)
+      - name: Restart API service (best-effort)
         shell: cmd
-        run: sc stop %API_SERVICE% || echo not running
+        run: |
+          @echo off
+          rem если службы нет — выходим молча
+          sc query "%API_SERVICE%" >nul 2>&1 || exit /b 0
+          rem пытаемся остановить, ошибки игнорируем (в т.ч. 1062)
+          sc stop "%API_SERVICE%" >nul 2>&1
+          rem пробуем запустить
+          sc start "%API_SERVICE%" >nul 2>&1 || sc query "%API_SERVICE%"
 
       - name: Deploy backend build
         shell: cmd
