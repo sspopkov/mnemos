@@ -40,6 +40,12 @@ jobs:
 
       # --- BACKEND ---
 
+      - name: Clean target directory
+        shell: cmd
+        run: |
+          @echo off
+          if exist "C:\srv\mnemos-api" rmdir /s /q "C:\srv\mnemos-api"
+
       # 1) Деплой API через pnpm deploy (собирает правильные node_modules)
       - name: Deploy API (pnpm deploy)
         run: pnpm deploy --filter "@mnemos/api" --prod "C:\srv\mnemos-api"
