@@ -40,12 +40,7 @@ jobs:
 
       # --- BACKEND ---
 
-      # 0) Поставить прод-зависимости для API в рабочей копии
-      - name: Prepare API production deps
-        working-directory: apps/api
-        run: pnpm install --prod
-  
-      # 2) Деплой бэкенда (как уже сделали)
+      # 1) Копируем только сборку и манифесты
       - name: Deploy backend build
         shell: cmd
         run: |
@@ -53,21 +48,21 @@ jobs:
           if not exist "%TARGET_API%" mkdir "%TARGET_API%"
           robocopy apps\api\dist "%TARGET_API%\dist" /MIR
           if %ERRORLEVEL% GTR 7 exit /B %ERRORLEVEL%
-          robocopy apps\api\node_modules "%TARGET_API%\node_modules" /MIR
-          if %ERRORLEVEL% GTR 7 exit /B %ERRORLEVEL%
           copy /Y apps\api\package.json "%TARGET_API%\"
           if exist apps\api\pnpm-lock.yaml copy /Y apps\api\pnpm-lock.yaml "%TARGET_API%\"
           if exist apps\api\.env copy /Y apps\api\.env "%TARGET_API%\"
 
-      # 3) (минимальный фикс 1069) Запускать от LocalSystem
-      - name: Set service to LocalSystem (avoid 1069)
+      # 2) Устанавливаем прод-зависимости прямо в целевой папке
+      - name: Install production deps in target
+        working-directory: C:\srv\mnemos-api
+        run: pnpm install --prod --frozen-lockfile
+
+      # 3) Перезапуск через PM2
+      - name: Reload API with PM2
         shell: cmd
         run: |
           @echo off
-          sc config "%API_SERVICE%" obj= "LocalSystem"
-          rem останавливать тихо (если не запущена — ок)
-          sc stop "%API_SERVICE%" >nul 2>&1
-          rem старт
-          sc start "%API_SERVICE%"
-          rem показать состояние для журнала
-          sc query "%API_SERVICE%"
+          where pm2 >nul 2>&1 || (echo [ERROR] pm2 not found. Run 'npm i -g pm2' on the server & exit /b 1)
+          pm2 describe mnemos-api >nul 2>&1 || pm2 start "%TARGET_API%\dist\main.js" --name mnemos-api --cwd "%TARGET_API%" --update-env --time
+          pm2 reload mnemos-api
+          pm2 save
