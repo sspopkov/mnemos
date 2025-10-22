@@ -29,6 +29,9 @@ jobs:
       - name: Build all apps
         run: pnpm build
 
+      - name: Enable injected workspace packages for pnpm v10
+        run: pnpm -w config set inject-workspace-packages true
+
       # --- FRONTEND ---
       - name: Deploy frontend to nginx www
         shell: cmd
