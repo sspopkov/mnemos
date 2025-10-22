@@ -39,7 +39,7 @@ jobs:
           exit /B %ERRORLEVEL%
 
       # --- BACKEND ---
-  
+
       # 1) Копируем сборку и node_modules + манифест
       - name: Deploy backend build
         shell: cmd
@@ -55,6 +55,9 @@ jobs:
           rem package.json (lock в цель НЕ копируем — он не нужен)
           copy /Y apps\api\package.json "%TARGET_API%\"
           if exist apps\api\.env copy /Y apps\api\.env "%TARGET_API%\"
+
+      - name: Ensure PM2 is installed globally
+        run: npm i -g pm2 pm2-windows-service
 
       # 2) Перезапуск через PM2
       - name: Reload API with PM2
