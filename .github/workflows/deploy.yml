@@ -1,0 +1,60 @@
+name: Build & Deploy (Windows Server)
+
+on:
+  push:
+    branches: [ "master" ]  # автодеплой при пуше в master
+
+jobs:
+  build-deploy:
+    runs-on: self-hosted  # твой GitHub Actions runner на сервере
+    env:
+      TARGET_WEB: C:\www\mnemos
+      TARGET_API: C:\srv\mnemos-api
+      API_SERVICE: mnemos-api
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18.18.0"
+          cache: "pnpm"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all apps
+        run: pnpm build
+
+      # --- FRONTEND ---
+      - name: Deploy frontend to nginx www
+        shell: cmd
+        run: |
+          if not exist "%TARGET_WEB%" mkdir "%TARGET_WEB%"
+          robocopy apps\web\dist "%TARGET_WEB%" /MIR
+
+      # --- BACKEND ---
+      - name: Stop API service (if running)
+        shell: cmd
+        run: sc stop %API_SERVICE% || echo not running
+
+      - name: Sync backend build
+        shell: cmd
+        run: |
+          if not exist "%TARGET_API%" mkdir "%TARGET_API%"
+          robocopy apps\api\dist "%TARGET_API%\dist" /MIR
+          copy /Y apps\api\package.json "%TARGET_API%\package.json"
+
+      - name: Install production dependencies for API
+        working-directory: C:\srv\mnemos-api
+        run: pnpm install --prod
+
+      - name: Restart API service
+        shell: cmd
+        run: sc start %API_SERVICE%
