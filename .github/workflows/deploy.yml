@@ -29,9 +29,6 @@ jobs:
       - name: Build all apps
         run: pnpm build
 
-      - name: Enable injected workspace packages for pnpm v10
-        run: pnpm -w config set inject-workspace-packages true
-
       # --- FRONTEND ---
       - name: Deploy frontend to nginx www
         shell: cmd
@@ -62,7 +59,7 @@ jobs:
 
       # 2) Деплой API через pnpm deploy
       - name: Deploy API (pnpm deploy)
-        run: pnpm deploy --filter "@mnemos/api" --prod "C:\srv\mnemos-api"
+        run: pnpm deploy --filter "@mnemos/api" --prod --legacy "C:\srv\mnemos-api"
 
       # 3) Копируем .env
       - name: Copy .env if exists
