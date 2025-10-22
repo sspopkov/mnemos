@@ -42,7 +42,7 @@ jobs:
 
       # 1) Деплой API через pnpm deploy (собирает правильные node_modules)
       - name: Deploy API (pnpm deploy)
-        run: pnpm -w deploy --filter @mnemos/api --prod "C:\srv\mnemos-api"
+        run: pnpm deploy --filter "@mnemos/api" --prod "C:\srv\mnemos-api"
 
       # (если нужен .env из репо — докинем отдельно)
       - name: Copy .env if exists
