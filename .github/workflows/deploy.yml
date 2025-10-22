@@ -44,41 +44,30 @@ jobs:
       - name: Prepare API production deps
         working-directory: apps/api
         run: pnpm install --prod
-
-      # 1) Мягкий рестарт службы (по-возможности)
-      - name: Restart API service (best-effort)
-        shell: cmd
-        run: |
-          @echo off
-          sc query "%API_SERVICE%" >nul 2>&1 || exit /b 0
-          sc stop "%API_SERVICE%" >nul 2>&1
-          rem подождём чуточку, чтобы файл-локи отпустились
-          ping 127.0.0.1 -n 2 >nul
-          sc start "%API_SERVICE%" >nul 2>&1 || echo will start again after copy
-
-      # 2) Деплой бэкенда: dist, node_modules и package.json
+  
+      # 2) Деплой бэкенда (как уже сделали)
       - name: Deploy backend build
         shell: cmd
         run: |
           @echo off
           if not exist "%TARGET_API%" mkdir "%TARGET_API%"
-          rem dist
           robocopy apps\api\dist "%TARGET_API%\dist" /MIR
           if %ERRORLEVEL% GTR 7 exit /B %ERRORLEVEL%
-          
-          rem node_modules (продовые, уже собраны шагом выше)
           robocopy apps\api\node_modules "%TARGET_API%\node_modules" /MIR
           if %ERRORLEVEL% GTR 7 exit /B %ERRORLEVEL%
-          
-          rem манифесты (на всякий случай удобно иметь рядом)
           copy /Y apps\api\package.json "%TARGET_API%\"
           if exist apps\api\pnpm-lock.yaml copy /Y apps\api\pnpm-lock.yaml "%TARGET_API%\"
           if exist apps\api\.env copy /Y apps\api\.env "%TARGET_API%\"
 
-      # 3) Запуск службы (тихо, без падения шага)
-      - name: Start API service
+      # 3) (минимальный фикс 1069) Запускать от LocalSystem
+      - name: Set service to LocalSystem (avoid 1069)
         shell: cmd
         run: |
           @echo off
-          sc start "%API_SERVICE%" >nul 2>&1
+          sc config "%API_SERVICE%" obj= "LocalSystem"
+          rem останавливать тихо (если не запущена — ок)
+          sc stop "%API_SERVICE%" >nul 2>&1
+          rem старт
+          sc start "%API_SERVICE%"
+          rem показать состояние для журнала
           sc query "%API_SERVICE%"
