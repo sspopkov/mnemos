@@ -39,25 +39,24 @@ jobs:
           exit /B %ERRORLEVEL%
 
       # --- BACKEND ---
-
-      # 1) Копируем только сборку и манифесты
+  
+      # 1) Копируем сборку и node_modules + манифест
       - name: Deploy backend build
         shell: cmd
         run: |
           @echo off
           if not exist "%TARGET_API%" mkdir "%TARGET_API%"
+          rem dist
           robocopy apps\api\dist "%TARGET_API%\dist" /MIR
           if %ERRORLEVEL% GTR 7 exit /B %ERRORLEVEL%
+          rem node_modules (продовые, уже установлены шагом выше)
+          robocopy apps\api\node_modules "%TARGET_API%\node_modules" /MIR
+          if %ERRORLEVEL% GTR 7 exit /B %ERRORLEVEL%
+          rem package.json (lock в цель НЕ копируем — он не нужен)
           copy /Y apps\api\package.json "%TARGET_API%\"
-          if exist pnpm-lock.yaml copy /Y pnpm-lock.yaml "%TARGET_API%\"
           if exist apps\api\.env copy /Y apps\api\.env "%TARGET_API%\"
 
-      # 2) Устанавливаем прод-зависимости прямо в целевой папке
-      - name: Install production deps in target
-        working-directory: C:\srv\mnemos-api
-        run: pnpm install --prod --frozen-lockfile
-
-      # 3) Перезапуск через PM2
+      # 2) Перезапуск через PM2
       - name: Reload API with PM2
         shell: cmd
         run: |
