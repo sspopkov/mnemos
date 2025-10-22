@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-deploy:
-    runs-on: self-hosted  # твой GitHub Actions runner на сервере
+    runs-on: [self-hosted, Windows]
     env:
       TARGET_WEB: C:\www\mnemos
       TARGET_API: C:\srv\mnemos-api
