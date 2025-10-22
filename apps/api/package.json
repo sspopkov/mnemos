@@ -1,0 +1,21 @@
+{
+  "name": "@mnemos/api",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "fastify": "^5.0.0",
+    "@fastify/cors": "^10.0.0",
+    "@mnemos/types": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.16.0",
+    "typescript": "^5.6.3",
+    "@types/node": "^20.11.30"
+  }
+}
