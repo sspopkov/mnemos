@@ -44,6 +44,8 @@ Desktop.ini
 .env
 .env.local
 .env.*.local
+apps/api/.env
+apps/web/.env
 
 # Tests
 .jest/

@@ -9,13 +9,14 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "fastify": "^5.0.0",
     "@fastify/cors": "^10.0.0",
-    "@mnemos/types": "workspace:*"
+    "@mnemos/types": "workspace:*",
+    "dotenv": "^17.2.3",
+    "fastify": "^5.0.0"
   },
   "devDependencies": {
+    "@types/node": "^20.11.30",
     "tsx": "^4.16.0",
-    "typescript": "^5.6.3",
-    "@types/node": "^20.11.30"
+    "typescript": "^5.6.3"
   }
 }
