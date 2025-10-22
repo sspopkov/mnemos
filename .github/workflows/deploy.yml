@@ -40,28 +40,37 @@ jobs:
 
       # --- BACKEND ---
 
+      # 0) Останавливаем старый процесс PM2 (если есть)
+      - name: Stop old API (if running)
+        shell: cmd
+        continue-on-error: true
+        run: |
+          @echo off
+          for /f "delims=" %%i in ('npm prefix -g') do set "NPM_PREFIX=%%i"
+          set "PM2=%NPM_PREFIX%\pm2.cmd"
+          if exist "%PM2%" "%PM2%" stop mnemos-api || echo no process
+
+      # 1) Очищаем целевую папку
       - name: Clean target directory
         shell: cmd
         run: |
           @echo off
           if exist "C:\srv\mnemos-api" rmdir /s /q "C:\srv\mnemos-api"
 
-      # 1) Деплой API через pnpm deploy (собирает правильные node_modules)
+      # 2) Деплой API через pnpm deploy
       - name: Deploy API (pnpm deploy)
         run: pnpm deploy --filter "@mnemos/api" --prod "C:\srv\mnemos-api"
 
-      # (если нужен .env из репо — докинем отдельно)
+      # 3) Копируем .env
       - name: Copy .env if exists
         shell: cmd
         run: |
           @echo off
           if exist apps\api\.env copy /Y apps\api\.env "C:\srv\mnemos-api\"
 
-      # 2) Перезапуск через PM2
+      # 4) Перезапуск API
       - name: Reload API with PM2
         shell: cmd
-        env:
-          PM2_HOME: C:\ProgramData\pm2
         run: |
           @echo off
           for /f "delims=" %%i in ('npm prefix -g') do set "NPM_PREFIX=%%i"
