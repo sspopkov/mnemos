@@ -60,8 +60,7 @@ jobs:
           cp -r deploy/* "$DEPLOY_DIR/"
 
       - name: Build API Docker image
-        working-directory: apps/api
-        run: docker build -t mnemos-api:latest .
+        run: docker build -t mnemos-api:latest -f apps/api/Dockerfile .
 
       - name: Run docker-compose deploy via wrapper
         run: sudo /usr/local/bin/mnemos-docker-deploy.sh
