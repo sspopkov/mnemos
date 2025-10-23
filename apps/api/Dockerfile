@@ -3,14 +3,20 @@ FROM node:20-alpine AS builder
 WORKDIR /work
 RUN corepack enable
 
+# Корневые файлы монорепы
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY tsconfig.base.json ./
+
+# package.json воркспейсов, нужных для резолюции и install
 COPY packages/types/package.json packages/types/package.json
 COPY apps/api/package.json apps/api/package.json
 
 RUN pnpm install --frozen-lockfile
 
+# Исходники пакетов
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
+
 WORKDIR /work/apps/api
 RUN pnpm build && pnpm prune --prod
 
