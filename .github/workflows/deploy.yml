@@ -1,4 +1,4 @@
-name: Build & Deploy (Windows Server)
+name: Build & Deploy (Ubuntu Server)
 
 on:
   push:
@@ -6,11 +6,16 @@ on:
 
 jobs:
   build-deploy:
-    runs-on: [self-hosted, Windows]
+    # В репозиторий/организацию добавь self-hosted runner с меткой "linux"
+    runs-on: [self-hosted, linux]
+
     env:
-      TARGET_WEB: C:\www\mnemos
-      TARGET_API: C:\srv\mnemos-api
+      TARGET_WEB: /var/www/mnemos
+      TARGET_API: /srv/mnemos-api
       API_SERVICE: mnemos-api
+      # PM2 хранить локально в рабочей папке раннера, чтобы не требовать sudo:
+      PM2_HOME: ${{ github.workspace }}/.pm2
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,9 +24,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20.19.0"
+          cache: "pnpm"
 
       - name: Install PNPM
-        run: npm i -g pnpm
+        run: npm i -g pnpm@10
 
       - name: Align pnpm v10 config with lockfile (no injected workspaces)
         run: pnpm -w config set inject-workspace-packages false
@@ -33,53 +39,56 @@ jobs:
         run: pnpm build
 
       # --- FRONTEND ---
-      - name: Deploy frontend to nginx www
-        shell: cmd
+      - name: Ensure web target directory exists and perms
         run: |
-          if not exist "%TARGET_WEB%" mkdir "%TARGET_WEB%"
-          robocopy apps\web\dist "%TARGET_WEB%" /MIR
-          if %ERRORLEVEL% LEQ 7 exit /B 0
-          exit /B %ERRORLEVEL%
+          sudo mkdir -p "$TARGET_WEB"
+          sudo chown -R "$USER":"$USER" "$TARGET_WEB"
+
+      - name: Deploy frontend to nginx www
+        run: |
+          rsync -a --delete apps/web/dist/ "$TARGET_WEB"/
 
       # --- BACKEND ---
+      # 0) Устанавливаем pm2 локально в рабочую папку (без sudo)
+      - name: Install PM2 locally (no sudo)
+        run: pnpm dlx pm2 -v
 
-      # 0) Останавливаем старый процесс PM2 (если есть)
-      - name: Stop old API (if running)
-        shell: cmd
-        continue-on-error: true
-        run: |
-          @echo off
-          for /f "delims=" %%i in ('npm prefix -g') do set "NPM_PREFIX=%%i"
-          set "PM2=%NPM_PREFIX%\pm2.cmd"
-          if exist "%PM2%" "%PM2%" stop mnemos-api || echo no process
-
-      # 1) Очищаем целевую папку
+      # 1) Очищаем целевую папку API
       - name: Clean target directory
-        shell: cmd
         run: |
-          @echo off
-          if exist "C:\srv\mnemos-api" rmdir /s /q "C:\srv\mnemos-api"
+          rm -rf "$TARGET_API"
+          mkdir -p "$TARGET_API"
 
-      # 2) Деплой API через pnpm deploy
+      # 2) Деплой API через pnpm deploy (как у тебя, только путь Linux)
       - name: Deploy API (pnpm deploy)
-        run: pnpm deploy --filter "@mnemos/api" --prod --legacy "C:\srv\mnemos-api"
+        run: pnpm deploy --filter "@mnemos/api" --prod --legacy "$TARGET_API"
 
-      # 3) Копируем .env
+      # 3) Копируем .env (если есть)
       - name: Copy .env if exists
-        shell: cmd
         run: |
-          @echo off
-          if exist apps\api\.env copy /Y apps\api\.env "C:\srv\mnemos-api\"
+          if [ -f apps/api/.env ]; then
+            cp -f apps/api/.env "$TARGET_API"/
+          fi
 
-      # 4) Перезапуск API
+      # 4) Перезапуск API через PM2
       - name: Reload API with PM2
-        shell: cmd
+        env:
+          PATH: ${{ env.PATH }}:${{ github.workspace }}/node_modules/.bin
         run: |
-          @echo off
-          for /f "delims=" %%i in ('npm prefix -g') do set "NPM_PREFIX=%%i"
-          set "PM2=%NPM_PREFIX%\pm2.cmd"
-          if not exist "%PM2%" ( echo [ERROR] pm2 CLI not found & exit /b 1 )
-          
-          "%PM2%" describe mnemos-api >nul 2>&1 || "%PM2%" start "C:\srv\mnemos-api\dist\main.js" --name mnemos-api --cwd "C:\srv\mnemos-api" --update-env --time
-          "%PM2%" reload mnemos-api
-          "%PM2%" save
+          # используем локальный pm2 через pnpm dlx, чтобы не зависеть от глобалки
+          APP_ENTRY="$TARGET_API/dist/main.js"
+          if [ ! -f "$APP_ENTRY" ]; then
+            echo "[ERROR] Entry not found: $APP_ENTRY" >&2
+            exit 1
+          fi
+
+          # если процесса нет — стартуем, иначе — reload
+          pnpm dlx pm2 describe "$API_SERVICE" >/dev/null 2>&1 || \
+            pnpm dlx pm2 start "$APP_ENTRY" --name "$API_SERVICE" --cwd "$TARGET_API" --update-env --time
+
+          pnpm dlx pm2 reload "$API_SERVICE"
+          pnpm dlx pm2 save
+
+      # 5) Быстрый sanity-check (не обязателен): показать процессы PM2
+      - name: PM2 list
+        run: pnpm dlx pm2 ls
