@@ -38,14 +38,15 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      # --- WEB: ставим ТОЛЬКО то, что нужно для web и его зависимостей
+      - name: Install deps for web only
+        run: pnpm install --frozen-lockfile --filter ./apps/web...
 
       # --- WEB ---
       - name: Build web
         run: pnpm --filter ./apps/web build
 
-      - name: Publish web to Nginx root (no sudo needed because runner owns the dir)
+      - name: Publish web to Nginx root
         run: |
           mkdir -p "${RUNNER_TEMP}/mnemos-web"
           rsync -a --delete apps/web/dist/ "${RUNNER_TEMP}/mnemos-web/"
@@ -53,8 +54,8 @@ jobs:
           # проверим nginx конфиг и перезагрузим через wrapper (sudo)
           sudo /usr/local/bin/mnemos-reload-nginx.sh
 
-      # --- API (Docker) ---
-      - name: Copy compose to deploy dir (so server has it)
+      # --- API (Docker): compose и образ живут своей жизнью
+      - name: Sync compose to deploy dir
         run: |
           mkdir -p "$DEPLOY_DIR"
           cp -r deploy/* "$DEPLOY_DIR/"

@@ -20,16 +20,19 @@ RUN pnpm install --frozen-lockfile
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
 
-WORKDIR /work/apps/api
-# тут уже CI=true унаследовано
-RUN pnpm build && pnpm prune --prod
+# сборка API (ts -> dist)
+RUN pnpm --filter @mnemos/api build
+
+# главное: собрать самодостаточный прод-бандл пакета
+RUN pnpm --filter @mnemos/api deploy --prod /out
 
 # ---------- runtime ----------
 FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /work/apps/api/dist ./dist
-COPY --from=builder /work/apps/api/package.json ./
-COPY --from=builder /work/apps/api/node_modules ./node_modules
+
+# кладём уже упакованный пакет
+COPY --from=builder /out/ ./
+
 EXPOSE 4000
 CMD ["node", "dist/index.js"]
