@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  api:
+    image: mnemos-api:latest
+    container_name: mnemos-api
+    restart: unless-stopped
+    env_file:
+      - /etc/mnemos/api.env
+    ports:
+      - "127.0.0.1:4000:4000"

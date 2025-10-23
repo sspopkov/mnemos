@@ -1,4 +1,4 @@
-name: Deploy to Ubuntu host
+name: Deploy (Docker + Nginx with wrapper)
 
 on:
   push:
@@ -7,13 +7,21 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: mnemos-deploy
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: [self-hosted, Ubuntu, X64]
     timeout-minutes: 30
 
+    env:
+      WEB_ROOT: /var/www/mnemos
+      DEPLOY_DIR: /home/runner/deploy
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
@@ -27,32 +35,37 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.19.0
+          node-version: 20
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build web client
-        run: pnpm --filter @mnemos/web build
+      # --- WEB ---
+      - name: Build web
+        run: pnpm --filter ./apps/web build
 
-      - name: Publish web client to nginx root
+      - name: Publish web to Nginx root (no sudo needed because runner owns the dir)
         run: |
-          sudo install -d -m 0755 /var/www/mnemos
-          sudo rsync -a --delete apps/web/dist/ /var/www/mnemos/
+          mkdir -p "${RUNNER_TEMP}/mnemos-web"
+          rsync -a --delete apps/web/dist/ "${RUNNER_TEMP}/mnemos-web/"
+          rsync -a --delete "${RUNNER_TEMP}/mnemos-web/" "$WEB_ROOT/"
+          # проверим nginx конфиг и перезагрузим через wrapper (sudo)
+          sudo /usr/local/bin/mnemos-reload-nginx.sh
 
-      - name: Build API service
-        run: pnpm --filter @mnemos/api build
-
-      - name: Package API for production
+      # --- API (Docker) ---
+      - name: Copy compose to deploy dir (so server has it)
         run: |
-          rm -rf /tmp/mnemos-api
-          pnpm deploy --filter @mnemos/api --prod /tmp/mnemos-api
+          mkdir -p "$DEPLOY_DIR"
+          cp -r deploy/* "$DEPLOY_DIR/"
 
-      - name: Publish API bundle
-        run: |
-          sudo install -d -m 0755 /opt/mnemos/api
-          sudo rsync -a --delete /tmp/mnemos-api/ /opt/mnemos/api/
+      - name: Build API Docker image
+        working-directory: apps/api
+        run: docker build -t mnemos-api:latest .
 
-      - name: Restart API service
-        run: sudo systemctl reload-or-restart mnemos-api.service
+      - name: Run docker-compose deploy via wrapper
+        run: sudo /usr/local/bin/mnemos-docker-deploy.sh
+
+      - name: Health check (best-effort)
+        continue-on-error: true
+        run: curl -fsS http://127.0.0.1:4000/api/health || true
