@@ -44,11 +44,11 @@ jobs:
         run: |
           npx pm2 stop "$API_SERVICE" || true
 
-      - name: Prepare API dir
+      - name: Prepare API dir (no sudo, no rmdir)
         run: |
-          sudo chown -R "$USER":"$USER" "$TARGET_API" "$TARGET_WEB" || true
-          rm -rf "$TARGET_API"
           mkdir -p "$TARGET_API"
+          # удаляем содержимое, но не сам каталог
+          find "$TARGET_API" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 
       - name: Deploy API package
         run: pnpm deploy --filter "@mnemos/api" --prod --legacy "$TARGET_API"
