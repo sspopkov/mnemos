@@ -42,13 +42,13 @@ jobs:
       # --- BACKEND ---
       - name: Stop API before deploy (if running)
         run: |
-          npx pm2 stop "$API_SERVICE" || true
+          corepack prepare pnpm@10 --activate
+          pnpm dlx pm2 stop "$API_SERVICE" || true
 
-      - name: Prepare API dir
+      - name: Prepare API dir (no sudo)
         run: |
-          sudo chown -R "$USER":"$USER" "$TARGET_API" "$TARGET_WEB" || true
-          rm -rf "$TARGET_API"
           mkdir -p "$TARGET_API"
+          find "$TARGET_API" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 
       - name: Deploy API package
         run: pnpm deploy --filter "@mnemos/api" --prod --legacy "$TARGET_API"
@@ -57,11 +57,15 @@ jobs:
         run: |
           if [ -f apps/api/.env ]; then cp -f apps/api/.env "$TARGET_API"/; fi
 
-      - name: Start/Reload API with PM2
+      - name: Start/Reload API with PM2 (no sudo, no global)
+        env:
+          PM2_HOME: ${{ github.workspace }}/.pm2
         run: |
+          corepack prepare pnpm@10 --activate
           APP="$TARGET_API/dist/main.js"
           [ -f "$APP" ] || (echo "entry not found: $APP" && exit 1)
-          npx pm2 describe "$API_SERVICE" >/dev/null 2>&1 || \
-            npx pm2 start "$APP" --name "$API_SERVICE" --cwd "$TARGET_API" --update-env --time
-          npx pm2 reload "$API_SERVICE" || npx pm2 start "$APP" --name "$API_SERVICE" --cwd "$TARGET_API" --update-env --time
-          npx pm2 save
+          pnpm dlx pm2 describe "$API_SERVICE" >/dev/null 2>&1 || \
+            pnpm dlx pm2 start "$APP" --name "$API_SERVICE" --cwd "$TARGET_API" --update-env --time
+          pnpm dlx pm2 reload "$API_SERVICE" || pnpm dlx pm2 start "$APP" --name "$API_SERVICE" --cwd "$TARGET_API" --update-env --time
+          pnpm dlx pm2 save
+
