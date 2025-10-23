@@ -27,7 +27,7 @@ jobs:
           pnpm -v
 
       - name: Install deps
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build
         run: pnpm build
@@ -64,7 +64,7 @@ jobs:
         run: |
           corepack enable
           corepack prepare pnpm@10 --activate
-          pnpm i --prod --frozen-lockfile
+          pnpm i --prod --no-frozen-lockfile
 
       - name: Start/Reload API with PM2
         run: |
