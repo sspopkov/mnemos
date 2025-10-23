@@ -42,8 +42,9 @@ jobs:
       # --- BACKEND ---
       - name: Prepare API dir
         run: |
-          rm -rf "$TARGET_API"
           mkdir -p "$TARGET_API"
+          # удалить содержимое, но не сам каталог
+          find "$TARGET_API" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 
       - name: Deploy API package
         run: pnpm deploy --filter "@mnemos/api" --prod --legacy "$TARGET_API"
