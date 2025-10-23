@@ -11,13 +11,17 @@ COPY tsconfig.base.json ./
 COPY packages/types/package.json packages/types/package.json
 COPY apps/api/package.json apps/api/package.json
 
+# сказать pnpm, что мы в CI
+ENV CI=true
+
 RUN pnpm install --frozen-lockfile
 
-# Исходники пакетов
+# исходники
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
 
 WORKDIR /work/apps/api
+# тут уже CI=true унаследовано
 RUN pnpm build && pnpm prune --prod
 
 # ---------- runtime ----------
