@@ -43,28 +43,29 @@ jobs:
       - name: Stop API before deploy (if running)
         run: npx pm2 stop mnemos-api || true
 
-      - name: Prepare API dir (clean contents, keep folder)
+      - name: Prepare target dir (keep folder, clean contents)
         run: |
           mkdir -p /srv/mnemos-api
           find /srv/mnemos-api -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 
-      - name: Sync API build and manifests
+      - name: Build deploy bundle in a temp dir (resolves workspaces)
+        env:
+          DEPLOY_TMP: ${{ runner.temp }}/api-deploy
         run: |
-          rsync -a apps/api/dist/ /srv/mnemos-api/dist/
-          rsync -a apps/api/package.json /srv/mnemos-api/
-          if [ -f apps/api/pnpm-lock.yaml ]; then
-            rsync -a apps/api/pnpm-lock.yaml /srv/mnemos-api/
-          fi
+          rm -rf "$DEPLOY_TMP"
+          mkdir -p "$DEPLOY_TMP"
+          # pnpm сам соберёт прод-набор зависимостей для api БЕЗ workspace:* сбоев
+          pnpm deploy --filter "@mnemos/api" --prod --legacy "$DEPLOY_TMP"
+
+      - name: Sync deploy bundle to target
+        env:
+          DEPLOY_TMP: ${{ runner.temp }}/api-deploy
+        run: |
+          rsync -a --delete "$DEPLOY_TMP"/ /srv/mnemos-api/
+          # если есть .env в репо — скопируем поверх (не обязательно)
           if [ -f apps/api/.env ]; then
             rsync -a apps/api/.env /srv/mnemos-api/.env
           fi
-
-      - name: Install production deps in target
-        working-directory: /srv/mnemos-api
-        run: |
-          corepack enable
-          corepack prepare pnpm@10 --activate
-          pnpm i --prod --no-frozen-lockfile
 
       - name: Start/Reload API with PM2
         run: |
