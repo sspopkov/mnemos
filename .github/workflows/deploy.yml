@@ -1,94 +1,63 @@
-name: Build & Deploy (Ubuntu Server)
+name: Deploy (Ubuntu)
 
 on:
   push:
-    branches: [ "master" ]  # автодеплой при пуше в master
+    branches: [ "master" ]
 
 jobs:
-  build-deploy:
-    # В репозиторий/организацию добавь self-hosted runner с меткой "linux"
+  deploy:
     runs-on: [self-hosted, linux]
 
     env:
       TARGET_WEB: /var/www/mnemos
       TARGET_API: /srv/mnemos-api
       API_SERVICE: mnemos-api
-      # PM2 хранить локально в рабочей папке раннера, чтобы не требовать sudo:
-      PM2_HOME: ${{ github.workspace }}/.pm2
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20.19.0"
-          cache: "pnpm"
 
-      - name: Install PNPM
-        run: npm i -g pnpm@10
+      - name: Enable pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@10 --activate
+          pnpm -v
 
-      - name: Align pnpm v10 config with lockfile (no injected workspaces)
-        run: pnpm -w config set inject-workspace-packages false
-
-      - name: Install dependencies
+      - name: Install deps
         run: pnpm install --frozen-lockfile
 
-      - name: Build all apps
+      - name: Build
         run: pnpm build
 
       # --- FRONTEND ---
-      - name: Ensure web target directory exists and perms
-        run: |
-          sudo mkdir -p "$TARGET_WEB"
-          sudo chown -R "$USER":"$USER" "$TARGET_WEB"
+      - name: Ensure web dir (owned by runner)
+        run: mkdir -p "$TARGET_WEB"
 
-      - name: Deploy frontend to nginx www
-        run: |
-          rsync -a --delete apps/web/dist/ "$TARGET_WEB"/
+      - name: Upload web to nginx root
+        run: rsync -a --delete apps/web/dist/ "$TARGET_WEB"/
 
       # --- BACKEND ---
-      # 0) Устанавливаем pm2 локально в рабочую папку (без sudo)
-      - name: Install PM2 locally (no sudo)
-        run: pnpm dlx pm2 -v
-
-      # 1) Очищаем целевую папку API
-      - name: Clean target directory
+      - name: Prepare API dir
         run: |
           rm -rf "$TARGET_API"
           mkdir -p "$TARGET_API"
 
-      # 2) Деплой API через pnpm deploy (как у тебя, только путь Linux)
-      - name: Deploy API (pnpm deploy)
+      - name: Deploy API package
         run: pnpm deploy --filter "@mnemos/api" --prod --legacy "$TARGET_API"
 
-      # 3) Копируем .env (если есть)
-      - name: Copy .env if exists
+      - name: Copy .env (optional)
         run: |
-          if [ -f apps/api/.env ]; then
-            cp -f apps/api/.env "$TARGET_API"/
-          fi
+          if [ -f apps/api/.env ]; then cp -f apps/api/.env "$TARGET_API"/; fi
 
-      # 4) Перезапуск API через PM2
       - name: Reload API with PM2
-        env:
-          PATH: ${{ env.PATH }}:${{ github.workspace }}/node_modules/.bin
         run: |
-          # используем локальный pm2 через pnpm dlx, чтобы не зависеть от глобалки
-          APP_ENTRY="$TARGET_API/dist/main.js"
-          if [ ! -f "$APP_ENTRY" ]; then
-            echo "[ERROR] Entry not found: $APP_ENTRY" >&2
-            exit 1
-          fi
-
-          # если процесса нет — стартуем, иначе — reload
-          pnpm dlx pm2 describe "$API_SERVICE" >/dev/null 2>&1 || \
-            pnpm dlx pm2 start "$APP_ENTRY" --name "$API_SERVICE" --cwd "$TARGET_API" --update-env --time
-
-          pnpm dlx pm2 reload "$API_SERVICE"
-          pnpm dlx pm2 save
-
-      # 5) Быстрый sanity-check (не обязателен): показать процессы PM2
-      - name: PM2 list
-        run: pnpm dlx pm2 ls
+          corepack prepare pnpm@10 --activate
+          APP="$TARGET_API/dist/main.js"
+          [ -f "$APP" ] || (echo "entry not found: $APP" && exit 1)
+          npx pm2 describe "$API_SERVICE" >/dev/null 2>&1 || \
+            npx pm2 start "$APP" --name "$API_SERVICE" --cwd "$TARGET_API" --update-env --time
+          npx pm2 reload "$API_SERVICE"
+          npx pm2 save
