@@ -41,27 +41,38 @@ jobs:
 
       # --- BACKEND ---
       - name: Stop API before deploy (if running)
-        run: |
-          npx pm2 stop "$API_SERVICE" || true
+        run: npx pm2 stop mnemos-api || true
 
-      - name: Prepare API dir (no sudo, no rmdir)
+      - name: Prepare API dir (clean contents, keep folder)
         run: |
-          mkdir -p "$TARGET_API"
-          # удаляем содержимое, но не сам каталог
-          find "$TARGET_API" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+          mkdir -p /srv/mnemos-api
+          find /srv/mnemos-api -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 
-      - name: Deploy API package
-        run: pnpm deploy --filter "@mnemos/api" --prod --legacy "$TARGET_API"
-
-      - name: Copy .env (optional)
+      - name: Sync API build and manifests
         run: |
-          if [ -f apps/api/.env ]; then cp -f apps/api/.env "$TARGET_API"/; fi
+          rsync -a apps/api/dist/ /srv/mnemos-api/dist/
+          rsync -a apps/api/package.json /srv/mnemos-api/
+          if [ -f apps/api/pnpm-lock.yaml ]; then
+            rsync -a apps/api/pnpm-lock.yaml /srv/mnemos-api/
+          fi
+          if [ -f apps/api/.env ]; then
+            rsync -a apps/api/.env /srv/mnemos-api/.env
+          fi
+
+      - name: Install production deps in target
+        working-directory: /srv/mnemos-api
+        run: |
+          corepack enable
+          corepack prepare pnpm@10 --activate
+          pnpm i --prod --frozen-lockfile
 
       - name: Start/Reload API with PM2
         run: |
-          APP="$TARGET_API/dist/main.js"
+          APP="/srv/mnemos-api/dist/main.js"
           [ -f "$APP" ] || (echo "entry not found: $APP" && exit 1)
-          npx pm2 describe "$API_SERVICE" >/dev/null 2>&1 || \
-            npx pm2 start "$APP" --name "$API_SERVICE" --cwd "$TARGET_API" --update-env --time
-          npx pm2 reload "$API_SERVICE" || npx pm2 start "$APP" --name "$API_SERVICE" --cwd "$TARGET_API" --update-env --time
+          npx pm2 describe mnemos-api >/dev/null 2>&1 || \
+            npx pm2 start "$APP" --name mnemos-api --cwd /srv/mnemos-api --update-env --time
+          npx pm2 reload mnemos-api || npx pm2 start "$APP" --name mnemos-api --cwd /srv/mnemos-api --update-env --time
           npx pm2 save
+
+
