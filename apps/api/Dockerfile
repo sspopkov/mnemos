@@ -4,6 +4,7 @@ WORKDIR /work
 RUN corepack enable
 
 # Корневые файлы монорепы
+COPY .npmrc ./
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY tsconfig.base.json ./
 
@@ -14,6 +15,7 @@ COPY apps/api/package.json apps/api/package.json
 # сказать pnpm, что мы в CI
 ENV CI=true
 
+# установка по локфайлу (теперь .npmrc уже на месте => настроек достаточно)
 RUN pnpm install --frozen-lockfile
 
 # исходники
