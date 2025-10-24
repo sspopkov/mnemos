@@ -5,6 +5,7 @@ const config = {
   printWidth: 100,
   semi: true,
   tabWidth: 2,
+  endOfLine: 'lf',
 };
 
 export default config;
