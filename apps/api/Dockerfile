@@ -34,6 +34,9 @@ RUN pnpm --filter @mnemos/api build
 # главное: собрать самодостаточный прод-бандл пакета
 RUN pnpm --filter @mnemos/api deploy --prod /out
 
+# после раскладывания прод-пакета prisma client теряется, перегенерим его прямо в /out
+RUN pnpm --dir /out prisma:generate
+
 # дополнительно убедимся, что prisma/ попадёт в /out
 RUN mkdir -p /out/prisma && cp -r prisma/* /out/prisma/
 
