@@ -10,10 +10,13 @@ const server = Fastify({ logger: true });
 async function bootstrap() {
   await server.register(fastifyCors, { origin: true });
 
-  server.get('/api/health', async (): Promise<HealthResponse> => ({
-    ok: true,
-    ts: new Date().toISOString(),
-  }));
+  server.get(
+    '/api/health',
+    async (): Promise<HealthResponse> => ({
+      ok: true,
+      ts: new Date().toISOString(),
+    }),
+  );
 
   await server.register(recordsRoutes);
 

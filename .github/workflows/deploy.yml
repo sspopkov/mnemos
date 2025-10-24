@@ -2,7 +2,7 @@ name: Deploy (Docker + Nginx with wrapper)
 
 on:
   push:
-    branches: ["master"]
+    branches: ['master']
 
 permissions:
   contents: read

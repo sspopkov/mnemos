@@ -57,5 +57,5 @@ export default tseslint.config(
         ...globals.es2021,
       },
     },
-  }
+  },
 );
