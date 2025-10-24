@@ -6,16 +6,22 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:dev": "prisma migrate dev --name init",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "db:seed": "node dist/seed.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.0",
     "@mnemos/types": "workspace:*",
+    "@prisma/client": "^6.18.0",
     "dotenv": "^17.2.3",
     "fastify": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",
+    "prisma": "^6.18.0",
     "tsx": "^4.16.0",
     "typescript": "^5.6.3"
   }

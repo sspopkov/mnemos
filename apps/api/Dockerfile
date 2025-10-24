@@ -18,6 +18,9 @@ ENV CI=true
 # установка по локфайлу (теперь .npmrc уже на месте => настроек достаточно)
 RUN pnpm install --frozen-lockfile
 
+# после pnpm install --frozen-lockfile
+RUN pnpm -F @mnemos/api prisma:generate
+
 # исходники
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api

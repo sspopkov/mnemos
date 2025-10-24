@@ -60,12 +60,26 @@ jobs:
           mkdir -p "$DEPLOY_DIR"
           cp -r deploy/* "$DEPLOY_DIR/"
 
+      # --- DB (первый раз или при обновлении версии Postgres/окружения)
+      # если БД уже крутится стабильно, этот шаг можно пропускать
+      - name: Ensure DB is up
+        run: sudo /usr/local/bin/mnemos-docker-db-deploy.sh
+
       - name: Build API Docker image
         run: docker build -t mnemos-api:latest -f apps/api/Dockerfile .
 
       - name: Run docker-compose deploy via wrapper
         run: sudo /usr/local/bin/mnemos-docker-deploy.sh
 
-      - name: Health check (best-effort)
+      # --- Prisma migrations (обновляют схему без перезапуска контейнеров)
+      - name: Run Prisma migrations
+        run: sudo /usr/local/bin/mnemos-api-migrate.sh
+
+      # --- Health checks (best-effort)
+      - name: Health check API
         continue-on-error: true
         run: curl -fsS http://127.0.0.1:4000/api/health || true
+
+      - name: Health check DB
+        continue-on-error: true
+        run: docker exec mnemos-db pg_isready -U mnemos -d mnemos_prod || true
