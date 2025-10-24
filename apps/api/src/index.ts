@@ -1,4 +1,4 @@
-import './loadEnv';
+import './loadEnv.js';
 
 const PORT = Number(process.env.PORT ?? 4000);
 const HOST = process.env.HOST ?? '0.0.0.0';

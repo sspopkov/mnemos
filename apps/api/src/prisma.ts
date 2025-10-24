@@ -1,4 +1,4 @@
-import './loadEnv';
+import './loadEnv.js';
 
 import { PrismaClient } from '@prisma/client';
 

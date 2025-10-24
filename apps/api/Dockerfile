@@ -1,5 +1,5 @@
 # ---------- builder ----------
-FROM node:20-alpine AS builder
+FROM node:20-bookworm-slim AS builder
 WORKDIR /work
 RUN corepack enable
 
@@ -38,7 +38,7 @@ RUN pnpm --filter @mnemos/api deploy --prod /out
 RUN mkdir -p /out/prisma && cp -r prisma/* /out/prisma/
 
 # ---------- runtime ----------
-FROM node:20-alpine
+FROM node:20-bookworm-slim
 WORKDIR /app
 ENV NODE_ENV=production
 
