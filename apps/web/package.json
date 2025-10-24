@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "typecheck": "tsc -b",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "pnpm -w exec prettier --check apps/web",
+    "format:write": "pnpm -w exec prettier --write apps/web"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

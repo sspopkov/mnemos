@@ -9,15 +9,33 @@ importers:
 
   .:
     devDependencies:
+      '@eslint/js':
+        specifier: ^9.36.0
+        version: 9.38.0
       concurrently:
         specifier: ^9.2.1
         version: 9.2.1
+      eslint:
+        specifier: ^9.36.0
+        version: 9.38.0(jiti@2.6.1)
+      eslint-plugin-react-hooks:
+        specifier: ^5.2.0
+        version: 5.2.0(eslint@9.38.0(jiti@2.6.1))
+      globals:
+        specifier: ^16.4.0
+        version: 16.4.0
+      prettier:
+        specifier: ^3.4.2
+        version: 3.4.2
       turbo:
         specifier: ^2.5.8
         version: 2.5.8
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      typescript-eslint:
+        specifier: ^8.45.0
+        version: 8.46.2(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3)
 
   apps/api:
     dependencies:
@@ -40,15 +58,27 @@ importers:
         specifier: ^6.18.0
         version: 6.18.0(typescript@5.9.3)
     devDependencies:
+      '@eslint/js':
+        specifier: ^9.36.0
+        version: 9.38.0
       '@types/node':
         specifier: ^20.11.30
         version: 20.19.23
+      eslint:
+        specifier: ^9.36.0
+        version: 9.38.0(jiti@2.6.1)
+      globals:
+        specifier: ^16.4.0
+        version: 16.4.0
       tsx:
         specifier: ^4.16.0
         version: 4.20.6
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
+      typescript-eslint:
+        specifier: ^8.45.0
+        version: 8.46.2(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3)
 
   apps/web:
     dependencies:
@@ -1474,6 +1504,11 @@ packages:
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
+
+  prettier@3.4.2:
+    resolution: {tarball: https://registry.npmjs.org/prettier/-/prettier-3.4.2.tgz}
+    engines: {node: '>=14'}
+    hasBin: true
 
   picomatch@2.3.1:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
@@ -3243,6 +3278,12 @@ snapshots:
   perfect-debounce@1.0.0: {}
 
   picocolors@1.1.1: {}
+
+  prettier@3.4.2:
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.31
+      nanoid: 3.3.11
+      picocolors: 1.1.1
 
   picomatch@2.3.1: {}
 

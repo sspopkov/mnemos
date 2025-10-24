@@ -14,7 +14,7 @@ export const App = () => {
 
   const navigation: NavigationItem[] = [
     { label: 'Главная', href: '/', description: 'Обзор состояния сервисов' },
-    { label: 'Записи',  href: '/records', description: 'CRUD по записям' },
+    { label: 'Записи', href: '/records', description: 'CRUD по записям' },
   ];
 
   const handleToggleColorMode = () => {
@@ -22,28 +22,28 @@ export const App = () => {
   };
 
   return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <BrowserRouter>
-          {/* AppShell теперь рендерит <Outlet />, а не children */}
-          <Routes>
-            <Route
-                element={
-                  <AppShell
-                      navItems={navigation}
-                      colorMode={mode}
-                      onToggleColorMode={handleToggleColorMode}
-                  />
-                }
-            >
-              <Route index element={<Home />} />
-              <Route path="/records" element={<RecordsPage />} />
-              {/* можно добавить 404 */}
-              {/* <Route path="*" element={<NotFound />} /> */}
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </ThemeProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <BrowserRouter>
+        {/* AppShell теперь рендерит <Outlet />, а не children */}
+        <Routes>
+          <Route
+            element={
+              <AppShell
+                navItems={navigation}
+                colorMode={mode}
+                onToggleColorMode={handleToggleColorMode}
+              />
+            }
+          >
+            <Route index element={<Home />} />
+            <Route path="/records" element={<RecordsPage />} />
+            {/* можно добавить 404 */}
+            {/* <Route path="*" element={<NotFound />} /> */}
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 };
 
