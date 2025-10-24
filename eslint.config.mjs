@@ -1,7 +1,13 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import js from '@eslint/js';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
+
+const repoRoot = path.dirname(fileURLToPath(import.meta.url));
+const fromRoot = (pattern) => path.join(repoRoot, pattern).replace(/\\/g, '/');
 
 const commonLanguageOptions = {
   ecmaVersion: 2023,
@@ -21,6 +27,9 @@ export default tseslint.config(
         ...globals.es2021,
       },
     },
+    plugins: {
+      'react-hooks': reactHooks,
+    },
     rules: {
       'no-console': 'warn',
       'no-debugger': 'error',
@@ -28,7 +37,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['apps/web/**/*.{js,jsx,ts,tsx}'],
+    files: [fromRoot('apps/web/**/*.{js,jsx,ts,tsx}')],
     extends: [reactHooks.configs['recommended-latest']],
     languageOptions: {
       ...commonLanguageOptions,
@@ -39,7 +48,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['apps/api/**/*.{js,ts}'],
+    files: [fromRoot('apps/api/**/*.{js,ts}')],
     languageOptions: {
       ...commonLanguageOptions,
       globals: {
