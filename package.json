@@ -8,8 +8,8 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "prettier": "prettier",
-    "format": "pnpm run prettier -- --check .",
-    "format:write": "pnpm run prettier -- --write ."
+    "format": "prettier --check .",
+    "format:write": "prettier --write ."
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

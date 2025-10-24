@@ -9,8 +9,8 @@
     "lint": "eslint .",
     "typecheck": "tsc -b",
     "preview": "vite preview",
-    "format": "pnpm -w run prettier -- --check apps/web",
-    "format:write": "pnpm -w run prettier -- --write apps/web"
+    "format": "pnpm -w exec prettier --check apps/web",
+    "format:write": "pnpm -w exec prettier --write apps/web"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

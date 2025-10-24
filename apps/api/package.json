@@ -11,8 +11,8 @@
     "db:seed": "node dist/seed.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint . --ext .ts",
-    "format": "pnpm -w run prettier -- --check apps/api",
-    "format:write": "pnpm -w run prettier -- --write apps/api"
+    "format": "pnpm -w exec prettier --check apps/api",
+    "format:write": "pnpm -w exec prettier --write apps/api"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.0",
