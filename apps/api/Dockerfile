@@ -18,8 +18,9 @@ COPY apps/api/package.json apps/api/package.json
 # сказать pnpm, что мы в CI
 ENV CI=true
 
-# установка по локфайлу (теперь .npmrc уже на месте => настроек достаточно)
-RUN pnpm install --frozen-lockfile
+# Устанавливаем зависимости с кешём
+RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
+    pnpm install --frozen-lockfile
 
 # исходники
 COPY packages/types ./packages/types
