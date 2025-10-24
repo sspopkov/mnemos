@@ -1,6 +1,6 @@
-import type { TypographyOptions } from '@mui/material/styles';
+import type { ThemeOptions } from '@mui/material/styles';
 
-export const typography: TypographyOptions = {
+export const typography: NonNullable<ThemeOptions['typography']> = {
   fontFamily: ['"Inter"', '"Roboto"', '"Helvetica Neue"', 'Arial', 'sans-serif'].join(','),
   h1: { fontWeight: 700 },
   h2: { fontWeight: 700 },
