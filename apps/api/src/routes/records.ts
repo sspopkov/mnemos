@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { prisma } from '../prisma'
+import { prisma } from '../prisma.js'
 
 export async function recordsRoutes(app: FastifyInstance) {
     app.get('/api/records', async () => {
