@@ -2,7 +2,16 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+
+    // <-- ключевой фикс для Node ESM
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    // не обязательно, но удобно
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "verbatimModuleSyntax": true
   },
   "include": ["src"]
 }
