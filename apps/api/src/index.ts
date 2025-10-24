@@ -6,7 +6,7 @@ const HOST = process.env.HOST ?? '0.0.0.0';
 import Fastify from "fastify";
 import fastifyCors from "@fastify/cors";
 import type { HealthResponse } from "@mnemos/types";
-import { recordsRoutes } from './routes/records'
+import { recordsRoutes } from './routes/records.js'
 
 const server = Fastify({ logger: true });
 await server.register(fastifyCors, { origin: true });
