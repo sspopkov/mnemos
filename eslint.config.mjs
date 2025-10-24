@@ -21,6 +21,11 @@ export default tseslint.config(
         ...globals.es2021,
       },
     },
+    rules: {
+      'no-console': 'warn',
+      'no-debugger': 'error',
+      '@typescript-eslint/no-explicit-any': 'warn',
+    },
   },
   {
     files: ['apps/web/**/*.{js,jsx,ts,tsx}'],
