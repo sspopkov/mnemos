@@ -1,24 +1,27 @@
-import './loadEnv.js';
+import Fastify from 'fastify';
+import fastifyCors from '@fastify/cors';
+import type { HealthResponse } from '@mnemos/types';
 
-const PORT = Number(process.env.PORT ?? 4000);
-const HOST = process.env.HOST ?? '0.0.0.0';
-
-import Fastify from "fastify";
-import fastifyCors from "@fastify/cors";
-import type { HealthResponse } from "@mnemos/types";
-import { recordsRoutes } from './routes/records.js'
+import { env } from './env';
+import { recordsRoutes } from './routes/records';
 
 const server = Fastify({ logger: true });
-await server.register(fastifyCors, { origin: true });
 
-server.get("/api/health", async (): Promise<HealthResponse> => ({
+async function bootstrap() {
+  await server.register(fastifyCors, { origin: true });
+
+  server.get('/api/health', async (): Promise<HealthResponse> => ({
     ok: true,
-    ts: new Date().toISOString()
-}));
+    ts: new Date().toISOString(),
+  }));
 
-await server.register(recordsRoutes)
+  await server.register(recordsRoutes);
 
-const port = Number(process.env.PORT ?? 4000);
-server.listen({ port, host: "0.0.0.0" }).then(() => {
-    server.log.info(`API listening on http://localhost:${port}`);
+  await server.listen({ port: env.port, host: env.host });
+  server.log.info(`API listening on http://${env.host}:${env.port}`);
+}
+
+bootstrap().catch((error) => {
+  server.log.error(error, 'Failed to start API server');
+  process.exit(1);
 });
