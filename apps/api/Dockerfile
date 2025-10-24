@@ -3,12 +3,15 @@ FROM node:20-alpine AS builder
 WORKDIR /work
 RUN corepack enable
 
-# Корневые файлы монорепы
+# корень
 COPY .npmrc ./
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY tsconfig.base.json ./
 
-# package.json воркспейсов, нужных для резолюции и install
+# ВАЖНО: схема и миграции нужны уже на этапе generate
+COPY prisma ./prisma
+
+# package.json нужных воркспейсов
 COPY packages/types/package.json packages/types/package.json
 COPY apps/api/package.json apps/api/package.json
 
@@ -18,18 +21,21 @@ ENV CI=true
 # установка по локфайлу (теперь .npmrc уже на месте => настроек достаточно)
 RUN pnpm install --frozen-lockfile
 
-# после pnpm install --frozen-lockfile
-RUN pnpm -F @mnemos/api prisma:generate
-
 # исходники
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
 
-# сборка API (ts -> dist)
+# теперь, когда prisma/ и исходники на месте — генерим клиент
+RUN pnpm -F @mnemos/api prisma:generate
+
+# сборка
 RUN pnpm --filter @mnemos/api build
 
 # главное: собрать самодостаточный прод-бандл пакета
 RUN pnpm --filter @mnemos/api deploy --prod /out
+
+# дополнительно убедимся, что prisma/ попадёт в /out
+RUN mkdir -p /out/prisma && cp -r prisma/* /out/prisma/
 
 # ---------- runtime ----------
 FROM node:20-alpine
