@@ -3,14 +3,9 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-
-    // <-- ключевой фикс для Node ESM
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-
-    // не обязательно, но удобно
-    "resolveJsonModule": true,
-    "moduleDetection": "force",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true
   },
   "include": ["src"]
 }
