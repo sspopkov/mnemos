@@ -9,7 +9,7 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY tsconfig.base.json ./
 
 # ВАЖНО: схема и миграции нужны уже на этапе generate
-COPY prisma ./apps/api/prisma
+COPY apps/api/prisma ./prisma
 
 # package.json нужных воркспейсов
 COPY packages/types/package.json packages/types/package.json
