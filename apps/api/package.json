@@ -10,9 +10,6 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "db:seed": "node dist/seed.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prebuild": "prisma generate",
-    "prestart": "prisma generate",
-    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.0",
