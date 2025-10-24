@@ -21,7 +21,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
-import { RecordsApi, type RecordItem } from '../../api/client';
+import { RecordsApi, getErrorMessage, type RecordItem } from '../../api/client';
 
 type EditFormData = { title: string; content: string };
 
@@ -50,8 +50,8 @@ export default function RecordsPage() {
     try {
       const data = await RecordsApi.list();
       setRows(data);
-    } catch (e: any) {
-      setError(e?.message ?? 'Ошибка загрузки');
+    } catch (error) {
+      setError(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -80,8 +80,8 @@ export default function RecordsPage() {
       }
       setEdit(null);
       await refresh();
-    } catch (e: any) {
-      alert(e?.message ?? 'Ошибка сохранения');
+    } catch (error) {
+      alert(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -93,8 +93,8 @@ export default function RecordsPage() {
       setLoading(true);
       await RecordsApi.remove(id);
       await refresh();
-    } catch (e: any) {
-      alert(e?.message ?? 'Ошибка удаления');
+    } catch (error) {
+      alert(getErrorMessage(error));
     } finally {
       setLoading(false);
     }

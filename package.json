@@ -9,7 +9,8 @@
     "typecheck": "turbo run typecheck",
     "prettier": "prettier",
     "format": "prettier --check .",
-    "format:write": "prettier --write ."
+    "format:write": "prettier --write .",
+    "generate:types": "pnpm -F @mnemos/api generate:openapi && pnpm -F @mnemos/types generate"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
