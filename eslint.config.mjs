@@ -24,9 +24,6 @@ export default tseslint.config(
   },
   {
     files: ['apps/web/**/*.{js,jsx,ts,tsx}'],
-    plugins: {
-      'react-hooks': reactHooks,
-    },
     extends: [reactHooks.configs['recommended-latest']],
     languageOptions: {
       ...commonLanguageOptions,
