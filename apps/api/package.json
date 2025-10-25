@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@fastify/cors": "^10.0.0",
+    "@fastify/swagger": "^9.4.0",
+    "@fastify/swagger-ui": "^2.1.0",
     "@mnemos/types": "workspace:*",
     "@prisma/client": "^6.18.0",
     "prisma": "^6.18.0",
