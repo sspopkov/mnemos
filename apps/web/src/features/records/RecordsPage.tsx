@@ -21,7 +21,13 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
-import { RecordsApi, type RecordItem } from '../../api/client';
+import {
+  createRecord,
+  deleteRecord,
+  getRecords,
+  updateRecord,
+  type GetRecords200Item,
+} from '@mnemos/types/api';
 
 type EditFormData = { title: string; content: string };
 
@@ -32,7 +38,7 @@ type EditState =
   | null;
 
 export default function RecordsPage() {
-  const [rows, setRows] = useState<RecordItem[]>([]);
+  const [rows, setRows] = useState<GetRecords200Item[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,7 +54,7 @@ export default function RecordsPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await RecordsApi.list();
+      const { data: data } = await getRecords();
       setRows(data);
     } catch (e: any) {
       setError(e?.message ?? 'Ошибка загрузки');
@@ -65,7 +71,7 @@ export default function RecordsPage() {
     setEdit({ mode: 'create', data: { title: '', content: '' } });
   }
 
-  function openEdit(r: RecordItem) {
+  function openEdit(r: GetRecords200Item) {
     setEdit({ mode: 'edit', id: r.id, data: { title: r.title, content: r.content ?? '' } });
   }
 
@@ -74,9 +80,9 @@ export default function RecordsPage() {
     try {
       setLoading(true);
       if (edit.mode === 'create') {
-        await RecordsApi.create(edit.data);
+        await createRecord(edit.data);
       } else {
-        await RecordsApi.update(edit.id, edit.data);
+        await updateRecord(edit.id, edit.data);
       }
       setEdit(null);
       await refresh();
@@ -91,7 +97,7 @@ export default function RecordsPage() {
     if (!confirm('Удалить запись?')) return;
     try {
       setLoading(true);
-      await RecordsApi.remove(id);
+      await deleteRecord(id);
       await refresh();
     } catch (e: any) {
       alert(e?.message ?? 'Ошибка удаления');

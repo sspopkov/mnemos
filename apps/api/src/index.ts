@@ -1,18 +1,56 @@
 import Fastify from 'fastify';
 import fastifyCors from '@fastify/cors';
-import type { HealthResponse } from '@mnemos/types';
+import fastifySwagger from '@fastify/swagger';
+import fastifySwaggerUi from '@fastify/swagger-ui';
+import { Type } from '@sinclair/typebox';
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 import { env } from './env';
 import { recordsRoutes } from './routes/records';
 
-const server = Fastify({ logger: true });
+const server = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
+
+const HealthResponseSchema = Type.Object(
+  {
+    ok: Type.Boolean(),
+    ts: Type.String({ format: 'date-time' }),
+  },
+  { additionalProperties: false },
+);
 
 async function bootstrap() {
   await server.register(fastifyCors, { origin: true });
 
+  await server.register(fastifySwagger, {
+    openapi: {
+      info: {
+        title: 'Mnemos API',
+        version: '1.0.0',
+      },
+    },
+  });
+
+  await server.register(fastifySwaggerUi, {
+    routePrefix: '/docs',
+    uiConfig: {
+      docExpansion: 'list',
+      deepLinking: false,
+    },
+  });
+
   server.get(
     '/api/health',
-    async (): Promise<HealthResponse> => ({
+    {
+      schema: {
+        tags: ['health'],
+        summary: 'Health check',
+        operationId: 'getHealth',
+        response: {
+          200: HealthResponseSchema,
+        },
+      },
+    },
+    async () => ({
       ok: true,
       ts: new Date().toISOString(),
     }),

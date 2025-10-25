@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Card, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material';
-import type { HealthResponse } from '@mnemos/types';
 import type { Theme } from '@mui/material/styles';
 
 import { formatTimestamp } from '../utils/date.ts';
+import type { GetHealth200 } from '@mnemos/types/api';
 
 export const Home = () => {
-  const [health, setHealth] = useState<HealthResponse | null>(null);
+  const [health, setHealth] = useState<GetHealth200 | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +23,7 @@ export const Home = () => {
           throw new Error(`Ошибка API: ${response.status}`);
         }
 
-        const payload = (await response.json()) as HealthResponse;
+        const payload = (await response.json()) as GetHealth200;
         if (!ignore) {
           setHealth(payload);
           setError(null);
