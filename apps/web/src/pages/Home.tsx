@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Card, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material';
-import type { HealthResponse } from '@mnemos/types';
 import type { Theme } from '@mui/material/styles';
 
 import { formatTimestamp } from '../utils/date.ts';
+import { getApiHealth, type HealthResponse } from '../api/generated';
 
 export const Home = () => {
   const [health, setHealth] = useState<HealthResponse | null>(null);
@@ -17,13 +17,7 @@ export const Home = () => {
     const load = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/health', { signal: controller.signal });
-
-        if (!response.ok) {
-          throw new Error(`Ошибка API: ${response.status}`);
-        }
-
-        const payload = (await response.json()) as HealthResponse;
+        const payload = await getApiHealth({ signal: controller.signal });
         if (!ignore) {
           setHealth(payload);
           setError(null);

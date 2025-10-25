@@ -5,6 +5,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
+    "openapi:generate": "tsx src/scripts/generate-openapi.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev --name init",
     "prisma:migrate:deploy": "prisma migrate deploy",
@@ -16,11 +17,14 @@
   },
   "dependencies": {
     "@fastify/cors": "^10.0.0",
-    "@mnemos/types": "workspace:*",
+    "@fastify/swagger": "^9.4.0",
+    "@fastify/swagger-ui": "^3.0.1",
+    "@fastify/type-provider-typebox": "^5.0.0",
     "@prisma/client": "^6.18.0",
-    "prisma": "^6.18.0",
+    "@sinclair/typebox": "^0.34.16",
     "dotenv": "^17.2.3",
-    "fastify": "^5.0.0"
+    "fastify": "^5.0.0",
+    "prisma": "^6.18.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

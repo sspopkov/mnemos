@@ -1,31 +1,97 @@
 import type { FastifyInstance } from 'fastify';
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 import { prisma } from '../prisma';
+import {
+  OperationResultSchema,
+  RecordCreateSchema,
+  RecordIdParamsSchema,
+  RecordListSchema,
+  RecordSchema,
+  RecordUpdateSchema,
+} from '../schemas/records';
 
 export async function recordsRoutes(app: FastifyInstance) {
-  app.get('/api/records', async () => {
-    return prisma.record.findMany({ orderBy: { createdAt: 'desc' } });
-  });
+  const server = app.withTypeProvider<TypeBoxTypeProvider>();
 
-  app.post('/api/records', async (req, reply) => {
-    const body = req.body as { title: string; content?: string };
-    if (!body?.title) return reply.code(400).send({ error: 'title is required' });
-    const rec = await prisma.record.create({
-      data: { title: body.title, content: body.content ?? null },
-    });
-    return rec;
-  });
+  server.get(
+    '/api/records',
+    {
+      schema: {
+        tags: ['Records'],
+        summary: 'Получить список записей',
+        response: {
+          200: RecordListSchema,
+        },
+      },
+    },
+    async () => {
+      return prisma.record.findMany({ orderBy: { createdAt: 'desc' } });
+    },
+  );
 
-  app.put('/api/records/:id', async (req, reply) => {
-    const { id } = req.params as { id: string };
-    const body = req.body as { title?: string; content?: string | null };
-    const rec = await prisma.record.update({ where: { id }, data: { ...body } });
-    return rec;
-  });
+  server.post(
+    '/api/records',
+    {
+      schema: {
+        tags: ['Records'],
+        summary: 'Создать новую запись',
+        body: RecordCreateSchema,
+        response: {
+          201: RecordSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const body = request.body;
+      const record = await prisma.record.create({
+        data: { title: body.title, content: body.content ?? null },
+      });
+      reply.code(201);
+      return record;
+    },
+  );
 
-  app.delete('/api/records/:id', async (req) => {
-    const { id } = req.params as { id: string };
-    await prisma.record.delete({ where: { id } });
-    return { ok: true };
-  });
+  server.put(
+    '/api/records/:id',
+    {
+      schema: {
+        tags: ['Records'],
+        summary: 'Обновить запись',
+        params: RecordIdParamsSchema,
+        body: RecordUpdateSchema,
+        response: {
+          200: RecordSchema,
+        },
+      },
+    },
+    async (request) => {
+      const { id } = request.params;
+      const body = request.body;
+      const record = await prisma.record.update({
+        where: { id },
+        data: { ...body },
+      });
+      return record;
+    },
+  );
+
+  server.delete(
+    '/api/records/:id',
+    {
+      schema: {
+        tags: ['Records'],
+        summary: 'Удалить запись',
+        params: RecordIdParamsSchema,
+        response: {
+          200: OperationResultSchema,
+        },
+      },
+    },
+    async (request) => {
+      const { id } = request.params;
+      await prisma.record.delete({ where: { id } });
+      return { ok: true } as const;
+    },
+  );
 }
