@@ -3,5 +3,26 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "types": "src/index.d.ts"
+  "types": "src/index.d.ts",
+  "files": [
+    "src",
+    "api.ts",
+    "swagger.json"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.d.ts"
+    },
+    "./api": {
+      "types": "./api.ts",
+      "import": "./api.ts"
+    }
+  },
+  "scripts": {
+    "gen:api": "openapi-typescript ./swagger.json -o ./api.ts --client fetch"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.4.1"
+  }
 }

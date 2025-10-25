@@ -12,15 +12,18 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint . --ext .ts",
     "format": "pnpm -w exec prettier --check apps/api",
-    "format:write": "pnpm -w exec prettier --write apps/api"
+    "format:write": "pnpm -w exec prettier --write apps/api",
+    "swagger:export": "curl http://localhost:4000/docs/json -o ../../packages/types/swagger.json"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.0",
     "@mnemos/types": "workspace:*",
     "@prisma/client": "^6.18.0",
-    "prisma": "^6.18.0",
+    "@fastify/swagger": "^9.4.0",
+    "@fastify/swagger-ui": "^4.1.1",
     "dotenv": "^17.2.3",
-    "fastify": "^5.0.0"
+    "fastify": "^5.0.0",
+    "prisma": "^6.18.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
