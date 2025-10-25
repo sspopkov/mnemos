@@ -5,8 +5,7 @@
   "type": "module",
   "types": "src/index.d.ts",
   "exports": {
-    ".": "./src/index.d.ts",
-    "./api": "./api/index.ts"
+    ".": "./src/index.d.ts"
   },
   "scripts": {
     "gen:api": "orval --config ./orval.config.js"

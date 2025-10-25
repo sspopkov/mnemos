@@ -27,7 +27,7 @@ import {
   getRecords,
   updateRecord,
   type GetRecords200Item,
-} from '@mnemos/types/api';
+} from '../../api/index.ts';
 
 type EditFormData = { title: string; content: string };
 

@@ -4,7 +4,7 @@ export default defineConfig({
   api: {
     input: './swagger.json',
     output: {
-      target: './api/index.ts',
+      target: '../../apps/web/src/api/index.ts',
       client: 'fetch',
       clean: true,
     },
