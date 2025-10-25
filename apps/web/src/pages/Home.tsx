@@ -3,7 +3,7 @@ import { Alert, Card, CardContent, Chip, LinearProgress, Stack, Typography } fro
 import type { Theme } from '@mui/material/styles';
 
 import { formatTimestamp } from '../utils/date.ts';
-import type { GetHealth200 } from '@mnemos/types/api';
+import type { GetHealth200 } from '../api/index.ts';
 
 export const Home = () => {
   const [health, setHealth] = useState<GetHealth200 | null>(null);
