@@ -1,8 +1,10 @@
 import type { FastifyInstance } from 'fastify';
 import { Type, type Static } from '@sinclair/typebox';
+import type { Record as PrismaRecord } from '@prisma/client';
 
 import { prisma } from '../prisma';
 
+// --- Schemas ---
 const RecordContent = Type.Union([Type.String(), Type.Null()]);
 
 const RecordSchema = Type.Object(
@@ -50,13 +52,24 @@ const DeleteRecordResponseSchema = Type.Object(
   { additionalProperties: false },
 );
 
+// --- Types ---
 type RecordEntity = Static<typeof RecordSchema>;
 type RecordParams = Static<typeof RecordParamsSchema>;
 type CreateRecordBody = Static<typeof CreateRecordBodySchema>;
 type UpdateRecordBody = Static<typeof UpdateRecordBodySchema>;
 type DeleteRecordResponse = Static<typeof DeleteRecordResponseSchema>;
 
+// Универсальный маппер: Prisma Date -> ISO string
+const toRecordEntity = (r: PrismaRecord): RecordEntity => ({
+  id: r.id,
+  title: r.title,
+  content: r.content,
+  createdAt: r.createdAt.toISOString(),
+  updatedAt: r.updatedAt.toISOString(),
+});
+
 export async function recordsRoutes(app: FastifyInstance) {
+  // GET /api/records
   app.get<{ Reply: RecordEntity[] }>(
     '/api/records',
     {
@@ -70,10 +83,12 @@ export async function recordsRoutes(app: FastifyInstance) {
       },
     },
     async () => {
-      return prisma.record.findMany({ orderBy: { createdAt: 'desc' } });
+      const rows = await prisma.record.findMany({ orderBy: { createdAt: 'desc' } });
+      return rows.map(toRecordEntity);
     },
   );
 
+  // POST /api/records
   app.post<{ Body: CreateRecordBody; Reply: RecordEntity }>(
     '/api/records',
     {
@@ -91,10 +106,11 @@ export async function recordsRoutes(app: FastifyInstance) {
       const rec = await prisma.record.create({
         data: { title: req.body.title, content: req.body.content ?? null },
       });
-      return reply.code(201).send(rec);
+      return reply.code(201).send(toRecordEntity(rec));
     },
   );
 
+  // PUT /api/records/:id
   app.put<{ Params: RecordParams; Body: UpdateRecordBody; Reply: RecordEntity }>(
     '/api/records/:id',
     {
@@ -117,10 +133,11 @@ export async function recordsRoutes(app: FastifyInstance) {
           ...(req.body.content !== undefined ? { content: req.body.content } : {}),
         },
       });
-      return rec;
+      return toRecordEntity(rec);
     },
   );
 
+  // DELETE /api/records/:id
   app.delete<{ Params: RecordParams; Reply: DeleteRecordResponse }>(
     '/api/records/:id',
     {

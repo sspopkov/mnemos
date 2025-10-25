@@ -9,7 +9,7 @@
     "./api": "./api/index.ts"
   },
   "scripts": {
-    "gen:api": "orval --config ./orval.config.ts"
+    "gen:api": "orval --config ./orval.config.js"
   },
   "devDependencies": {
     "orval": "^7.0.1"

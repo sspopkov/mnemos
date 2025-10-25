@@ -12,7 +12,7 @@ const server = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>()
 
 const HealthResponseSchema = Type.Object(
   {
-    ok: Type.Literal(true),
+    ok: Type.Boolean(),
     ts: Type.String({ format: 'date-time' }),
   },
   { additionalProperties: false },

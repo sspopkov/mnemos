@@ -18,9 +18,9 @@
   "dependencies": {
     "@fastify/cors": "^10.0.0",
     "@fastify/swagger": "^9.4.0",
-    "@fastify/swagger-ui": "^4.0.0",
-    "@fastify/type-provider-typebox": "^5.0.0",
-    "@sinclair/typebox": "^0.34.9",
+    "@fastify/swagger-ui": "^5.2.3",
+    "@fastify/type-provider-typebox": "^6.1.0",
+    "@sinclair/typebox": "^0.34.41",
     "@mnemos/types": "workspace:*",
     "@prisma/client": "^6.18.0",
     "prisma": "^6.18.0",

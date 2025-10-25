@@ -26,7 +26,7 @@ import {
   deleteRecord,
   getRecords,
   updateRecord,
-  type RecordItem,
+  type GetRecords200Item,
 } from '@mnemos/types/api';
 
 type EditFormData = { title: string; content: string };
@@ -38,7 +38,7 @@ type EditState =
   | null;
 
 export default function RecordsPage() {
-  const [rows, setRows] = useState<RecordItem[]>([]);
+  const [rows, setRows] = useState<GetRecords200Item[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,7 +54,7 @@ export default function RecordsPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getRecords();
+      const { data: data } = await getRecords();
       setRows(data);
     } catch (e: any) {
       setError(e?.message ?? 'Ошибка загрузки');
@@ -71,7 +71,7 @@ export default function RecordsPage() {
     setEdit({ mode: 'create', data: { title: '', content: '' } });
   }
 
-  function openEdit(r: RecordItem) {
+  function openEdit(r: GetRecords200Item) {
     setEdit({ mode: 'edit', id: r.id, data: { title: r.title, content: r.content ?? '' } });
   }
 
