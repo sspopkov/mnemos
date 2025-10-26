@@ -3,6 +3,7 @@ import { Type, type Static } from '@sinclair/typebox';
 import type { Record as PrismaRecord } from '@prisma/client';
 
 import { prisma } from '../prisma';
+import { errorResponses } from '../plugins/errors';
 
 // --- Schemas ---
 const RecordContent = Type.Union([Type.String(), Type.Null()]);
@@ -21,9 +22,7 @@ const RecordSchema = Type.Object(
 const RecordListSchema = Type.Array(RecordSchema);
 
 const RecordParamsSchema = Type.Object(
-  {
-    id: Type.String({ format: 'uuid' }),
-  },
+  { id: Type.String({ format: 'uuid' }) },
   { additionalProperties: false },
 );
 
@@ -46,9 +45,7 @@ const UpdateRecordBodySchema = Type.Partial(
 );
 
 const DeleteRecordResponseSchema = Type.Object(
-  {
-    ok: Type.Literal(true),
-  },
+  { ok: Type.Literal(true) },
   { additionalProperties: false },
 );
 
@@ -59,7 +56,7 @@ type CreateRecordBody = Static<typeof CreateRecordBodySchema>;
 type UpdateRecordBody = Static<typeof UpdateRecordBodySchema>;
 type DeleteRecordResponse = Static<typeof DeleteRecordResponseSchema>;
 
-// Универсальный маппер: Prisma Date -> ISO string
+// Prisma Date -> ISO string
 const toRecordEntity = (r: PrismaRecord): RecordEntity => ({
   id: r.id,
   title: r.title,
@@ -79,6 +76,7 @@ export async function recordsRoutes(app: FastifyInstance) {
         operationId: 'getRecords',
         response: {
           200: RecordListSchema,
+          ...errorResponses, // 400/401/403/404/409/500 -> { $ref: 'ApiError#' }
         },
       },
     },
@@ -99,6 +97,7 @@ export async function recordsRoutes(app: FastifyInstance) {
         body: CreateRecordBodySchema,
         response: {
           201: RecordSchema,
+          ...errorResponses,
         },
       },
     },
@@ -122,6 +121,7 @@ export async function recordsRoutes(app: FastifyInstance) {
         body: UpdateRecordBodySchema,
         response: {
           200: RecordSchema,
+          ...errorResponses,
         },
       },
     },
@@ -148,6 +148,7 @@ export async function recordsRoutes(app: FastifyInstance) {
         params: RecordParamsSchema,
         response: {
           200: DeleteRecordResponseSchema,
+          ...errorResponses,
         },
       },
     },

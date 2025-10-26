@@ -1,1 +1,377 @@
-{"openapi":"3.0.3","info":{"title":"Mnemos API","version":"1.0.0"},"components":{"schemas":{}},"paths":{"/api/health":{"get":{"operationId":"getHealth","summary":"Health check","tags":["health"],"responses":{"200":{"description":"Default Response","content":{"application/json":{"schema":{"additionalProperties":false,"type":"object","properties":{"ok":{"type":"boolean","enum":[true]},"ts":{"format":"date-time","type":"string"}},"required":["ok","ts"]}}}}}}},"/api/records":{"get":{"operationId":"getRecords","summary":"List records","tags":["records"],"responses":{"200":{"description":"Default Response","content":{"application/json":{"schema":{"type":"array","items":{"additionalProperties":false,"type":"object","properties":{"id":{"format":"uuid","type":"string"},"title":{"type":"string"},"content":{"anyOf":[{"type":"string"},{"type":"null"}]},"createdAt":{"format":"date-time","type":"string"},"updatedAt":{"format":"date-time","type":"string"}},"required":["id","title","content","createdAt","updatedAt"]}}}}}}},"post":{"operationId":"createRecord","summary":"Create record","tags":["records"],"requestBody":{"content":{"application/json":{"schema":{"additionalProperties":false,"type":"object","properties":{"title":{"minLength":1,"type":"string"},"content":{"anyOf":[{"type":"string"},{"type":"null"}]}},"required":["title"]}}},"required":true},"responses":{"201":{"description":"Default Response","content":{"application/json":{"schema":{"additionalProperties":false,"type":"object","properties":{"id":{"format":"uuid","type":"string"},"title":{"type":"string"},"content":{"anyOf":[{"type":"string"},{"type":"null"}]},"createdAt":{"format":"date-time","type":"string"},"updatedAt":{"format":"date-time","type":"string"}},"required":["id","title","content","createdAt","updatedAt"]}}}}}}},"/api/records/{id}":{"put":{"operationId":"updateRecord","summary":"Update record","tags":["records"],"requestBody":{"content":{"application/json":{"schema":{"additionalProperties":false,"type":"object","properties":{"title":{"minLength":1,"type":"string"},"content":{"anyOf":[{"type":"string"},{"type":"null"}]}}}}}},"parameters":[{"schema":{"format":"uuid","type":"string"},"in":"path","name":"id","required":true}],"responses":{"200":{"description":"Default Response","content":{"application/json":{"schema":{"additionalProperties":false,"type":"object","properties":{"id":{"format":"uuid","type":"string"},"title":{"type":"string"},"content":{"anyOf":[{"type":"string"},{"type":"null"}]},"createdAt":{"format":"date-time","type":"string"},"updatedAt":{"format":"date-time","type":"string"}},"required":["id","title","content","createdAt","updatedAt"]}}}}}},"delete":{"operationId":"deleteRecord","summary":"Delete record","tags":["records"],"parameters":[{"schema":{"format":"uuid","type":"string"},"in":"path","name":"id","required":true}],"responses":{"200":{"description":"Default Response","content":{"application/json":{"schema":{"additionalProperties":false,"type":"object","properties":{"ok":{"type":"boolean","enum":[true]}},"required":["ok"]}}}}}}}}}
+{
+  "openapi": "3.0.3",
+  "info": { "title": "Mnemos API", "version": "1.0.0" },
+  "components": {
+    "schemas": {
+      "def-0": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "code": { "type": "string" },
+          "details": {}
+        },
+        "required": ["message"],
+        "title": "ApiError"
+      }
+    }
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "getHealth",
+        "summary": "Health check",
+        "tags": ["health"],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean" },
+                    "ts": { "format": "date-time", "type": "string" }
+                  },
+                  "required": ["ok", "ts"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/records": {
+      "get": {
+        "operationId": "getRecords",
+        "summary": "List records",
+        "tags": ["records"],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "additionalProperties": false,
+                    "type": "object",
+                    "properties": {
+                      "id": { "format": "uuid", "type": "string" },
+                      "title": { "type": "string" },
+                      "content": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+                      "createdAt": { "format": "date-time", "type": "string" },
+                      "updatedAt": { "format": "date-time", "type": "string" }
+                    },
+                    "required": ["id", "title", "content", "createdAt", "updatedAt"]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createRecord",
+        "summary": "Create record",
+        "tags": ["records"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "properties": {
+                  "title": { "minLength": 1, "type": "string" },
+                  "content": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
+                },
+                "required": ["title"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "properties": {
+                    "id": { "format": "uuid", "type": "string" },
+                    "title": { "type": "string" },
+                    "content": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+                    "createdAt": { "format": "date-time", "type": "string" },
+                    "updatedAt": { "format": "date-time", "type": "string" }
+                  },
+                  "required": ["id", "title", "content", "createdAt", "updatedAt"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/{id}": {
+      "put": {
+        "operationId": "updateRecord",
+        "summary": "Update record",
+        "tags": ["records"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "properties": {
+                  "title": { "minLength": 1, "type": "string" },
+                  "content": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": { "format": "uuid", "type": "string" },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "properties": {
+                    "id": { "format": "uuid", "type": "string" },
+                    "title": { "type": "string" },
+                    "content": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+                    "createdAt": { "format": "date-time", "type": "string" },
+                    "updatedAt": { "format": "date-time", "type": "string" }
+                  },
+                  "required": ["id", "title", "content", "createdAt", "updatedAt"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteRecord",
+        "summary": "Delete record",
+        "tags": ["records"],
+        "parameters": [
+          {
+            "schema": { "format": "uuid", "type": "string" },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "properties": { "ok": { "type": "boolean", "enum": [true] } },
+                  "required": ["ok"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/def-0" } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

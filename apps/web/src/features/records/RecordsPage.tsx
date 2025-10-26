@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -22,89 +22,100 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import {
-  createRecord,
-  deleteRecord,
-  getRecords,
-  updateRecord,
+  useGetRecords,
+  useCreateRecord,
+  useUpdateRecord,
+  useDeleteRecord,
+  getGetRecordsQueryKey,
   type GetRecords200Item,
-} from '../../api/index.ts';
+  type Def0,
+} from '../../api';
+import { useQueryClient } from '@tanstack/react-query';
+import { getErrorMessage } from '../../utils/errors';
 
 type EditFormData = { title: string; content: string };
 
-// единый тип состояния
 type EditState =
   | { mode: 'create'; data: EditFormData }
   | { mode: 'edit'; id: string; data: EditFormData }
   | null;
 
-export default function RecordsPage() {
-  const [rows, setRows] = useState<GetRecords200Item[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const RecordsPage = () => {
+  const qc = useQueryClient();
+
+  const {
+    data: rows = [],
+    isLoading,
+    isFetching,
+    error,
+  } = useGetRecords<GetRecords200Item[], Def0>({
+    query: {
+      queryKey: getGetRecordsQueryKey(),
+      select: (res) => res.data,
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  });
+
+  const createMut = useCreateRecord({
+    mutation: {
+      onSuccess: () => qc.invalidateQueries({ queryKey: getGetRecordsQueryKey() }),
+    },
+  });
+
+  const updateMut = useUpdateRecord({
+    mutation: {
+      onSuccess: () => qc.invalidateQueries({ queryKey: getGetRecordsQueryKey() }),
+    },
+  });
+
+  const deleteMut = useDeleteRecord({
+    mutation: {
+      onSuccess: () => qc.invalidateQueries({ queryKey: getGetRecordsQueryKey() }),
+    },
+  });
 
   const [edit, setEdit] = useState<EditState>(null);
-  const isOpen = Boolean(edit);
+  const isOpen = edit !== null;
 
-  const title = useMemo(() => {
-    if (!edit) return '';
-    return edit.mode === 'create' ? 'Новая запись' : 'Редактирование';
-  }, [edit]);
+  const title = useMemo(
+    () => (!edit ? '' : edit.mode === 'create' ? 'Новая запись' : 'Редактирование'),
+    [edit],
+  );
 
-  async function refresh() {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data: data } = await getRecords();
-      setRows(data);
-    } catch (e: any) {
-      setError(e?.message ?? 'Ошибка загрузки');
-    } finally {
-      setLoading(false);
-    }
-  }
+  const loading =
+    isLoading || isFetching || createMut.isPending || updateMut.isPending || deleteMut.isPending;
 
-  useEffect(() => {
-    refresh();
-  }, []);
+  const errorText = error ? getErrorMessage(error) : null;
 
-  function openCreate() {
-    setEdit({ mode: 'create', data: { title: '', content: '' } });
-  }
+  const openCreate = () => setEdit({ mode: 'create', data: { title: '', content: '' } });
 
-  function openEdit(r: GetRecords200Item) {
+  const openEdit = (r: GetRecords200Item) =>
     setEdit({ mode: 'edit', id: r.id, data: { title: r.title, content: r.content ?? '' } });
-  }
 
-  async function onSubmit() {
+  const onSubmit = async () => {
     if (!edit) return;
     try {
-      setLoading(true);
       if (edit.mode === 'create') {
-        await createRecord(edit.data);
+        await createMut.mutateAsync({ data: edit.data });
       } else {
-        await updateRecord(edit.id, edit.data);
+        await updateMut.mutateAsync({ id: edit.id, data: edit.data });
       }
       setEdit(null);
-      await refresh();
-    } catch (e: any) {
-      alert(e?.message ?? 'Ошибка сохранения');
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      alert(getErrorMessage(e));
     }
-  }
+  };
 
-  async function onDelete(id: string) {
+  const onDelete = async (id: string) => {
     if (!confirm('Удалить запись?')) return;
     try {
-      setLoading(true);
-      await deleteRecord(id);
-      await refresh();
-    } catch (e: any) {
-      alert(e?.message ?? 'Ошибка удаления');
-    } finally {
-      setLoading(false);
+      await deleteMut.mutateAsync({ id });
+    } catch (e) {
+      alert(getErrorMessage(e));
     }
-  }
+  };
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
@@ -112,13 +123,13 @@ export default function RecordsPage() {
         <Typography variant="h5" fontWeight={600}>
           Записи
         </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate} disabled={loading}>
           Добавить
         </Button>
       </Stack>
 
       {loading && <LinearProgress sx={{ mb: 2 }} />}
-      {error && <Box sx={{ color: 'error.main', mb: 2 }}>{error}</Box>}
+      {errorText && <Box sx={{ color: 'error.main', mb: 2 }}>{errorText}</Box>}
 
       <Box
         sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}
@@ -157,7 +168,12 @@ export default function RecordsPage() {
                   {r.content ?? '—'}
                 </TableCell>
                 <TableCell align="right">
-                  <IconButton size="small" onClick={() => openEdit(r)} aria-label="Редактировать">
+                  <IconButton
+                    size="small"
+                    onClick={() => openEdit(r)}
+                    aria-label="Редактировать"
+                    disabled={loading}
+                  >
                     <EditIcon fontSize="small" />
                   </IconButton>
                   <IconButton
@@ -165,6 +181,7 @@ export default function RecordsPage() {
                     size="small"
                     onClick={() => onDelete(r.id)}
                     aria-label="Удалить"
+                    disabled={deleteMut.isPending}
                   >
                     <DeleteIcon fontSize="small" />
                   </IconButton>
@@ -196,6 +213,7 @@ export default function RecordsPage() {
               }
               autoFocus
               required
+              disabled={createMut.isPending || updateMut.isPending}
             />
             <TextField
               label="Контент"
@@ -205,16 +223,28 @@ export default function RecordsPage() {
               }
               multiline
               minRows={3}
+              disabled={createMut.isPending || updateMut.isPending}
             />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEdit(null)}>Отмена</Button>
-          <Button variant="contained" onClick={onSubmit} disabled={!edit?.data.title?.trim()}>
+          <Button
+            onClick={() => setEdit(null)}
+            disabled={createMut.isPending || updateMut.isPending}
+          >
+            Отмена
+          </Button>
+          <Button
+            variant="contained"
+            onClick={onSubmit}
+            disabled={!edit?.data.title?.trim() || createMut.isPending || updateMut.isPending}
+          >
             Сохранить
           </Button>
         </DialogActions>
       </Dialog>
     </Container>
   );
-}
+};
+
+export default RecordsPage;

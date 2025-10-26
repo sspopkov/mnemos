@@ -7,6 +7,7 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 import { env } from './env';
 import { recordsRoutes } from './routes/records';
+import errorsPlugin, { errorResponses } from './plugins/errors';
 
 const server = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
 
@@ -23,20 +24,17 @@ async function bootstrap() {
 
   await server.register(fastifySwagger, {
     openapi: {
-      info: {
-        title: 'Mnemos API',
-        version: '1.0.0',
-      },
+      info: { title: 'Mnemos API', version: '1.0.0' },
     },
   });
 
   await server.register(fastifySwaggerUi, {
     routePrefix: '/docs',
-    uiConfig: {
-      docExpansion: 'list',
-      deepLinking: false,
-    },
+    uiConfig: { docExpansion: 'list', deepLinking: false },
   });
+
+  // ⬇️ Регистрируем глобальный обработчик ошибок — обязательно ДО роутов
+  await server.register(errorsPlugin);
 
   server.get(
     '/api/health',
@@ -47,13 +45,11 @@ async function bootstrap() {
         operationId: 'getHealth',
         response: {
           200: HealthResponseSchema,
+          ...errorResponses, // 400/401/403/404/409/500 -> { $ref: 'ApiError#' }
         },
       },
     },
-    async () => ({
-      ok: true,
-      ts: new Date().toISOString(),
-    }),
+    async () => ({ ok: true, ts: new Date().toISOString() }),
   );
 
   await server.register(recordsRoutes);

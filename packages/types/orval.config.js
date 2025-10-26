@@ -5,7 +5,7 @@ export default defineConfig({
     input: './swagger.json',
     output: {
       target: '../../apps/web/src/api/index.ts',
-      client: 'fetch',
+      client: 'react-query',
       clean: true,
     },
   },

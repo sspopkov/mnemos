@@ -4,7 +4,7 @@ import type { PaletteMode } from '@mui/material';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import { AppShell, type NavigationItem } from './layout/AppShell';
-import { Home } from '../pages/Home';
+import Home from '../pages/Home';
 import RecordsPage from '../features/records/RecordsPage';
 import { getDesignTokens } from '../utils/theme';
 

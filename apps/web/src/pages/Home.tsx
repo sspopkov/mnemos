@@ -1,71 +1,35 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Alert, Card, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
 
-import { formatTimestamp } from '../utils/date.ts';
-import { getHealth } from '../api/index.ts';
-import type { GetHealth200 } from '../api/index.ts';
+import { formatTimestamp } from '../utils/date';
+import { useGetHealth, getGetHealthQueryKey, type GetHealth200, type Def0 } from '../api';
+import { getErrorMessage } from '../utils/errors';
 
-export const Home = () => {
-  const [health, setHealth] = useState<GetHealth200 | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const Home = () => {
+  const {
+    data: health,
+    isLoading,
+    isFetching,
+    error,
+  } = useGetHealth<GetHealth200, Def0>({
+    query: {
+      queryKey: getGetHealthQueryKey(),
+      select: (res) => res.data,
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  });
 
-  useEffect(() => {
-    let ignore = false;
-    const controller = new AbortController();
-
-    const load = async () => {
-      setLoading(true);
-
-      try {
-        const { data, status } = await getHealth({ signal: controller.signal });
-
-        if (status !== 200) {
-          throw new Error(`Ошибка API: ${status}`);
-        }
-
-        if (!ignore) {
-          setHealth(data);
-          setError(null);
-        }
-      } catch (err) {
-        if (ignore) {
-          return;
-        }
-
-        if (err instanceof DOMException && err.name === 'AbortError') {
-          return;
-        }
-
-        setError(err instanceof Error && err.message ? err.message : 'Неожиданная ошибка');
-        setHealth(null);
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
-      }
-    };
-
-    void load();
-
-    return () => {
-      ignore = true;
-      controller.abort();
-    };
-  }, []);
+  const loading = isLoading || isFetching;
+  const errorText = error ? getErrorMessage(error) : null;
 
   const statusLabel = useMemo(() => {
-    if (loading) {
-      return 'Проверяем состояние сервисов…';
-    }
-
-    if (error) {
-      return 'Сервисы недоступны';
-    }
-
+    if (loading) return 'Проверяем состояние сервисов…';
+    if (errorText) return 'Сервисы недоступны';
     return health?.ok ? 'Все системы работают' : 'Нет данных';
-  }, [error, health?.ok, loading]);
+  }, [errorText, health?.ok, loading]);
 
   return (
     <Stack spacing={4} sx={{ maxWidth: 960, mx: 'auto' }}>
@@ -86,21 +50,21 @@ export const Home = () => {
                 Состояние API
               </Typography>
               <Chip
-                color={error ? 'error' : health?.ok ? 'success' : 'default'}
+                color={errorText ? 'error' : health?.ok ? 'success' : 'default'}
                 label={statusLabel}
-                variant={error ? 'filled' : 'outlined'}
+                variant={errorText ? 'filled' : 'outlined'}
               />
             </Stack>
 
             {loading && <LinearProgress color="primary" />}
 
-            {error && (
+            {errorText && (
               <Alert severity="error" variant="outlined">
-                {error}
+                {errorText}
               </Alert>
             )}
 
-            {!loading && !error && health && (
+            {!loading && !errorText && health && (
               <Stack spacing={1}>
                 <Typography variant="body2" color="text.secondary">
                   Последнее обновление:

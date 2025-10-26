@@ -4,6 +4,26 @@
  * Mnemos API
  * OpenAPI spec version: 1.0.0
  */
+import { useMutation, useQuery } from '@tanstack/react-query';
+import type {
+  MutationFunction,
+  QueryFunction,
+  QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult,
+} from '@tanstack/react-query';
+
+import axios from 'axios';
+import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+
+export interface Def0 {
+  message: string;
+  code?: string;
+  details?: unknown;
+}
+
 export type GetHealth200 = {
   ok: boolean;
   ts: string;
@@ -59,213 +79,343 @@ export type DeleteRecord200 = {
   ok: boolean;
 };
 
+type AwaitedInput<T> = PromiseLike<T> | T;
+
+type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
+
 /**
  * @summary Health check
  */
-export type getHealthResponse200 = {
-  data: GetHealth200
-  status: 200
-}
-    
-export type getHealthResponseSuccess = (getHealthResponse200) & {
-  headers: Headers;
+export const getHealth = (options?: AxiosRequestConfig): Promise<AxiosResponse<GetHealth200>> => {
+  return axios.get(`/api/health`, options);
 };
-;
 
-export type getHealthResponse = (getHealthResponseSuccess)
+export const getGetHealthQueryKey = () => {
+  return [`/api/health`] as const;
+};
 
-export const getGetHealthUrl = () => {
+export const getGetHealthQueryOptions = <
+  TData = Awaited<ReturnType<typeof getHealth>>,
+  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>;
+  axios?: AxiosRequestConfig;
+}) => {
+  const { query: queryOptions, axios: axiosOptions } = options ?? {};
 
+  const queryKey = queryOptions?.queryKey ?? getGetHealthQueryKey();
 
-  
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getHealth>>> = ({ signal }) =>
+    getHealth({ signal, ...axiosOptions });
 
-  return `/api/health`
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getHealth>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetHealthQueryResult = NonNullable<Awaited<ReturnType<typeof getHealth>>>;
+export type GetHealthQueryError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>;
+
+/**
+ * @summary Health check
+ */
+
+export function useGetHealth<
+  TData = Awaited<ReturnType<typeof getHealth>>,
+  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>;
+  axios?: AxiosRequestConfig;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetHealthQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
 }
-
-export const getHealth = async ( options?: RequestInit): Promise<getHealthResponse> => {
-  
-  const res = await fetch(getGetHealthUrl(),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  
-  const data: getHealthResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getHealthResponse
-}
-
-
 
 /**
  * @summary List records
  */
-export type getRecordsResponse200 = {
-  data: GetRecords200Item[]
-  status: 200
-}
-    
-export type getRecordsResponseSuccess = (getRecordsResponse200) & {
-  headers: Headers;
+export const getRecords = (
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<GetRecords200Item[]>> => {
+  return axios.get(`/api/records`, options);
 };
-;
 
-export type getRecordsResponse = (getRecordsResponseSuccess)
+export const getGetRecordsQueryKey = () => {
+  return [`/api/records`] as const;
+};
 
-export const getGetRecordsUrl = () => {
+export const getGetRecordsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRecords>>,
+  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getRecords>>, TError, TData>;
+  axios?: AxiosRequestConfig;
+}) => {
+  const { query: queryOptions, axios: axiosOptions } = options ?? {};
 
+  const queryKey = queryOptions?.queryKey ?? getGetRecordsQueryKey();
 
-  
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecords>>> = ({ signal }) =>
+    getRecords({ signal, ...axiosOptions });
 
-  return `/api/records`
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getRecords>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetRecordsQueryResult = NonNullable<Awaited<ReturnType<typeof getRecords>>>;
+export type GetRecordsQueryError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>;
+
+/**
+ * @summary List records
+ */
+
+export function useGetRecords<
+  TData = Awaited<ReturnType<typeof getRecords>>,
+  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getRecords>>, TError, TData>;
+  axios?: AxiosRequestConfig;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetRecordsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
 }
-
-export const getRecords = async ( options?: RequestInit): Promise<getRecordsResponse> => {
-  
-  const res = await fetch(getGetRecordsUrl(),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-)
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  
-  const data: getRecordsResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getRecordsResponse
-}
-
-
 
 /**
  * @summary Create record
  */
-export type createRecordResponse201 = {
-  data: CreateRecord201
-  status: 201
-}
-    
-export type createRecordResponseSuccess = (createRecordResponse201) & {
-  headers: Headers;
+export const createRecord = (
+  createRecordBody: CreateRecordBody,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<CreateRecord201>> => {
+  return axios.post(`/api/records`, createRecordBody, options);
 };
-;
 
-export type createRecordResponse = (createRecordResponseSuccess)
+export const getCreateRecordMutationOptions = <
+  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createRecord>>,
+    TError,
+    { data: CreateRecordBody },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createRecord>>,
+  TError,
+  { data: CreateRecordBody },
+  TContext
+> => {
+  const mutationKey = ['createRecord'];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
 
-export const getCreateRecordUrl = () => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createRecord>>,
+    { data: CreateRecordBody }
+  > = (props) => {
+    const { data } = props ?? {};
 
+    return createRecord(data, axiosOptions);
+  };
 
-  
+  return { mutationFn, ...mutationOptions };
+};
 
-  return `/api/records`
-}
+export type CreateRecordMutationResult = NonNullable<Awaited<ReturnType<typeof createRecord>>>;
+export type CreateRecordMutationBody = CreateRecordBody;
+export type CreateRecordMutationError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>;
 
-export const createRecord = async (createRecordBody: CreateRecordBody, options?: RequestInit): Promise<createRecordResponse> => {
-  
-  const res = await fetch(getCreateRecordUrl(),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      createRecordBody,)
-  }
-)
+/**
+ * @summary Create record
+ */
+export const useCreateRecord = <
+  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createRecord>>,
+    TError,
+    { data: CreateRecordBody },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createRecord>>,
+  TError,
+  { data: CreateRecordBody },
+  TContext
+> => {
+  const mutationOptions = getCreateRecordMutationOptions(options);
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  
-  const data: createRecordResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createRecordResponse
-}
-
-
+  return useMutation(mutationOptions);
+};
 
 /**
  * @summary Update record
  */
-export type updateRecordResponse200 = {
-  data: UpdateRecord200
-  status: 200
-}
-    
-export type updateRecordResponseSuccess = (updateRecordResponse200) & {
-  headers: Headers;
+export const updateRecord = (
+  id: string,
+  updateRecordBody: UpdateRecordBody,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<UpdateRecord200>> => {
+  return axios.put(`/api/records/${id}`, updateRecordBody, options);
 };
-;
 
-export type updateRecordResponse = (updateRecordResponseSuccess)
+export const getUpdateRecordMutationOptions = <
+  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateRecord>>,
+    TError,
+    { id: string; data: UpdateRecordBody },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateRecord>>,
+  TError,
+  { id: string; data: UpdateRecordBody },
+  TContext
+> => {
+  const mutationKey = ['updateRecord'];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
 
-export const getUpdateRecordUrl = (id: string,) => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateRecord>>,
+    { id: string; data: UpdateRecordBody }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
+    return updateRecord(id, data, axiosOptions);
+  };
 
-  
+  return { mutationFn, ...mutationOptions };
+};
 
-  return `/api/records/${id}`
-}
+export type UpdateRecordMutationResult = NonNullable<Awaited<ReturnType<typeof updateRecord>>>;
+export type UpdateRecordMutationBody = UpdateRecordBody;
+export type UpdateRecordMutationError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>;
 
-export const updateRecord = async (id: string,
-    updateRecordBody: UpdateRecordBody, options?: RequestInit): Promise<updateRecordResponse> => {
-  
-  const res = await fetch(getUpdateRecordUrl(id),
-  {      
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      updateRecordBody,)
-  }
-)
+/**
+ * @summary Update record
+ */
+export const useUpdateRecord = <
+  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateRecord>>,
+    TError,
+    { id: string; data: UpdateRecordBody },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateRecord>>,
+  TError,
+  { id: string; data: UpdateRecordBody },
+  TContext
+> => {
+  const mutationOptions = getUpdateRecordMutationOptions(options);
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  
-  const data: updateRecordResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as updateRecordResponse
-}
-
-
+  return useMutation(mutationOptions);
+};
 
 /**
  * @summary Delete record
  */
-export type deleteRecordResponse200 = {
-  data: DeleteRecord200
-  status: 200
-}
-    
-export type deleteRecordResponseSuccess = (deleteRecordResponse200) & {
-  headers: Headers;
+export const deleteRecord = (
+  id: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<DeleteRecord200>> => {
+  return axios.delete(`/api/records/${id}`, options);
 };
-;
 
-export type deleteRecordResponse = (deleteRecordResponseSuccess)
+export const getDeleteRecordMutationOptions = <
+  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteRecord>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteRecord>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ['deleteRecord'];
+  const { mutation: mutationOptions, axios: axiosOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, axios: undefined };
 
-export const getDeleteRecordUrl = (id: string,) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteRecord>>, { id: string }> = (
+    props,
+  ) => {
+    const { id } = props ?? {};
 
+    return deleteRecord(id, axiosOptions);
+  };
 
-  
+  return { mutationFn, ...mutationOptions };
+};
 
-  return `/api/records/${id}`
-}
+export type DeleteRecordMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRecord>>>;
 
-export const deleteRecord = async (id: string, options?: RequestInit): Promise<deleteRecordResponse> => {
-  
-  const res = await fetch(getDeleteRecordUrl(id),
-  {      
-    ...options,
-    method: 'DELETE'
-    
-    
-  }
-)
+export type DeleteRecordMutationError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>;
 
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-  
-  const data: deleteRecordResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as deleteRecordResponse
-}
+/**
+ * @summary Delete record
+ */
+export const useDeleteRecord = <
+  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteRecord>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  axios?: AxiosRequestConfig;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteRecord>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationOptions = getDeleteRecordMutationOptions(options);
+
+  return useMutation(mutationOptions);
+};
