@@ -10,7 +10,7 @@ const RecordContent = Type.Union([Type.String(), Type.Null()]);
 
 const RecordSchema = Type.Object(
   {
-    id: Type.String({ format: 'uuid' }),
+    id: Type.String({ minLength: 1 }),
     title: Type.String(),
     content: RecordContent,
     createdAt: Type.String({ format: 'date-time' }),
@@ -22,7 +22,7 @@ const RecordSchema = Type.Object(
 const RecordListSchema = Type.Array(RecordSchema);
 
 const RecordParamsSchema = Type.Object(
-  { id: Type.String({ format: 'uuid' }) },
+  { id: Type.String({ minLength: 1 }) },
   { additionalProperties: false },
 );
 
