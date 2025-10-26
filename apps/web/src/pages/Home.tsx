@@ -3,6 +3,7 @@ import { Alert, Card, CardContent, Chip, LinearProgress, Stack, Typography } fro
 import type { Theme } from '@mui/material/styles';
 
 import { formatTimestamp } from '../utils/date.ts';
+import { getHealth } from '../api/index.ts';
 import type { GetHealth200 } from '../api/index.ts';
 
 export const Home = () => {
@@ -15,17 +16,17 @@ export const Home = () => {
     const controller = new AbortController();
 
     const load = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/health', { signal: controller.signal });
+      setLoading(true);
 
-        if (!response.ok) {
-          throw new Error(`Ошибка API: ${response.status}`);
+      try {
+        const { data, status } = await getHealth({ signal: controller.signal });
+
+        if (status !== 200) {
+          throw new Error(`Ошибка API: ${status}`);
         }
 
-        const payload = (await response.json()) as GetHealth200;
         if (!ignore) {
-          setHealth(payload);
+          setHealth(data);
           setError(null);
         }
       } catch (err) {
@@ -33,11 +34,11 @@ export const Home = () => {
           return;
         }
 
-        if ((err as Error).name === 'AbortError') {
+        if (err instanceof DOMException && err.name === 'AbortError') {
           return;
         }
 
-        setError((err as Error).message ?? 'Неожиданная ошибка');
+        setError(err instanceof Error && err.message ? err.message : 'Неожиданная ошибка');
         setHealth(null);
       } finally {
         if (!ignore) {
