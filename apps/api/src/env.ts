@@ -18,13 +18,22 @@ const booleanFromEnv = (value: BooleanEnv, fallback: boolean): boolean => {
   return fallback;
 };
 
+const TEST_ACCESS_TOKEN_TTL = '2m';
+// const PROD_ACCESS_TOKEN_TTL = '10m';
+
+const TEST_REFRESH_TOKEN_TTL_DAYS = 2 / (24 * 60);
+// const PROD_REFRESH_TOKEN_TTL_DAYS = 14;
+
 export const env = {
   host: process.env.HOST ?? '0.0.0.0',
   port: numberFromEnv(process.env.PORT, 4000),
   databaseUrl: process.env.DATABASE_URL,
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET ?? 'dev-access-secret',
-  jwtAccessTtl: process.env.JWT_ACCESS_TTL ?? '10m',
-  refreshTokenTtlDays: numberFromEnv(process.env.REFRESH_TOKEN_TTL_DAYS, 14),
+  jwtAccessTtl: process.env.JWT_ACCESS_TTL ?? TEST_ACCESS_TOKEN_TTL,
+  refreshTokenTtlDays: numberFromEnv(
+    process.env.REFRESH_TOKEN_TTL_DAYS,
+    TEST_REFRESH_TOKEN_TTL_DAYS,
+  ),
   refreshCookieName: process.env.REFRESH_COOKIE_NAME ?? 'mnemos-refresh',
   cookieDomain: process.env.COOKIE_DOMAIN,
   cookieSecure: booleanFromEnv(process.env.COOKIE_SECURE as BooleanEnv, false),
