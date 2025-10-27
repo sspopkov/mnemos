@@ -227,12 +227,16 @@ export async function authRoutes(app: FastifyInstance) {
       }
 
       if (session.expiresAt < new Date()) {
-        await prisma.refreshSession.delete({ where: { id: session.id } });
+        await prisma.refreshSession.deleteMany({ where: { id: session.id } });
         clearRefreshCookie(reply);
         throw app.httpErrors.unauthorized('Refresh token expired');
       }
 
-      await prisma.refreshSession.delete({ where: { id: session.id } });
+      const deleteResult = await prisma.refreshSession.deleteMany({ where: { id: session.id } });
+      if (deleteResult.count !== 1) {
+        clearRefreshCookie(reply);
+        throw app.httpErrors.unauthorized('Refresh session not found');
+      }
 
       const refreshToken = randomBytes(48).toString('hex');
       await createSession(reply, session.userId, refreshToken, req);
