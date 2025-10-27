@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { BrowserRouter, Route, Routes, useNavigate } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import type { PaletteMode } from '@mui/material';
@@ -73,9 +73,12 @@ export const App = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const initialized = useAuthStore(selectAuthInitialized);
+  const bootstrapping = useRef(false);
 
   useEffect(() => {
-    if (initialized) return;
+    if (initialized || bootstrapping.current) return;
+
+    bootstrapping.current = true;
 
     const fetchSession = async () => {
       try {
@@ -87,6 +90,8 @@ export const App = () => {
         setAuth({ accessToken, user });
       } catch {
         clearAuth();
+      } finally {
+        bootstrapping.current = false;
       }
     };
 
