@@ -7,11 +7,36 @@ datasource db {
   url      = env("DATABASE_URL") // подтянем из .env
 }
 
+model User {
+  id              String            @id @default(cuid())
+  email           String            @unique
+  passwordHash    String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  records         Record[]
+  refreshSessions RefreshSession[]
+}
+
+model RefreshSession {
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  tokenHash  String   @unique
+  userAgent  String?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+}
+
 // Простейшая таблица для CRUD
 model Record {
   id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
   title     String
   content   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }

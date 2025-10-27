@@ -3,8 +3,9 @@ import { Alert, Card, CardContent, Chip, LinearProgress, Stack, Typography } fro
 import type { Theme } from '@mui/material/styles';
 
 import { formatTimestamp } from '../utils/date';
-import { useGetHealth, getGetHealthQueryKey, type GetHealth200, type Def0 } from '../api';
+import { useGetHealth, getGetHealthQueryKey, type GetHealth200, type ApiError } from '../api';
 import { getErrorMessage } from '../utils/errors';
+import { useAuthStore, selectAuthUser } from '../store/auth';
 
 const Home = () => {
   const {
@@ -12,7 +13,7 @@ const Home = () => {
     isLoading,
     isFetching,
     error,
-  } = useGetHealth<GetHealth200, Def0>({
+  } = useGetHealth<GetHealth200, ApiError>({
     query: {
       queryKey: getGetHealthQueryKey(),
       select: (res) => res.data,
@@ -31,11 +32,13 @@ const Home = () => {
     return health?.ok ? 'Все системы работают' : 'Нет данных';
   }, [errorText, health?.ok, loading]);
 
+  const user = useAuthStore(selectAuthUser);
+
   return (
     <Stack spacing={4} sx={{ maxWidth: 960, mx: 'auto' }}>
       <Stack spacing={1}>
         <Typography variant="h3" component="h1">
-          Добро пожаловать!
+          Добро пожаловать{user ? `, ${user.email}` : ''}!
         </Typography>
         <Typography variant="body1" color="text.secondary">
           Здесь вы найдёте текущий статус ключевых сервисов Mnemos.

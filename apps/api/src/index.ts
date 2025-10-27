@@ -8,6 +8,8 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { env } from './env';
 import { recordsRoutes } from './routes/records';
 import errorsPlugin, { errorResponses } from './plugins/errors';
+import authPlugin from './plugins/auth';
+import { authRoutes } from './routes/auth';
 
 const server = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
 
@@ -20,11 +22,23 @@ const HealthResponseSchema = Type.Object(
 );
 
 async function bootstrap() {
-  await server.register(fastifyCors, { origin: true });
+  await server.register(fastifyCors, {
+    origin: env.corsOrigin ?? true,
+    credentials: true,
+  });
 
   await server.register(fastifySwagger, {
     openapi: {
       info: { title: 'Mnemos API', version: '1.0.0' },
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+          },
+        },
+      },
     },
   });
 
@@ -35,6 +49,7 @@ async function bootstrap() {
 
   // ⬇️ Регистрируем глобальный обработчик ошибок — обязательно ДО роутов
   await server.register(errorsPlugin);
+  await server.register(authPlugin);
 
   server.get(
     '/api/health',
@@ -52,6 +67,7 @@ async function bootstrap() {
     async () => ({ ok: true, ts: new Date().toISOString() }),
   );
 
+  await server.register(authRoutes);
   await server.register(recordsRoutes);
 
   await server.listen({ port: env.port, host: env.host });

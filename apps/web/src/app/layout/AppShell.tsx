@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type MouseEvent } from 'react';
 import {
   AppBar,
+  Avatar,
   Box,
   Divider,
   Drawer,
@@ -8,6 +9,9 @@ import {
   List,
   ListItemButton,
   ListItemText,
+  ListItemIcon,
+  Menu,
+  MenuItem,
   Toolbar,
   Tooltip,
   Typography,
@@ -17,11 +21,14 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import LogoutIcon from '@mui/icons-material/Logout';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import type { Theme } from '@mui/material/styles';
 import type { PaletteMode } from '@mui/material';
 import { Link as RouterLink, Outlet, useLocation } from 'react-router-dom'; // ⬅️ добавили
 
 import { DRAWER_WIDTH } from '../../utils/layout';
+import type { AuthUser } from '../../store/auth';
 
 export type NavigationItem = {
   label: string;
@@ -33,19 +40,46 @@ type AppShellProps = {
   navItems: NavigationItem[];
   colorMode: PaletteMode;
   onToggleColorMode: () => void;
+  user: AuthUser;
+  onLogout: () => void;
+  logoutPending?: boolean;
 };
 
-export const AppShell = ({ navItems, colorMode, onToggleColorMode }: AppShellProps) => {
+export const AppShell = ({
+  navItems,
+  colorMode,
+  onToggleColorMode,
+  user,
+  onLogout,
+  logoutPending = false,
+}: AppShellProps) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const currentYear = useMemo(() => new Date().getFullYear(), []);
   const location = useLocation(); // ⬅️ где мы сейчас
+  const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
+  const userInitial = useMemo(() => user.email.charAt(0).toUpperCase(), [user.email]);
+
+  const isUserMenuOpen = Boolean(userMenuAnchor);
 
   const handleDrawerToggle = () => setMobileOpen((prev) => !prev);
   const handleNavClick = () => {
     // на мобильном — закрыть меню после перехода
     if (!isDesktop) setMobileOpen(false);
+  };
+
+  const handleUserMenuOpen = (event: MouseEvent<HTMLElement>) => {
+    setUserMenuAnchor(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchor(null);
+  };
+
+  const handleLogoutClick = () => {
+    handleUserMenuClose();
+    onLogout();
   };
 
   const drawer = (
@@ -139,6 +173,44 @@ export const AppShell = ({ navItems, colorMode, onToggleColorMode }: AppShellPro
               {colorMode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
             </IconButton>
           </Tooltip>
+
+          <Tooltip title={user.email}>
+            <IconButton
+              color="inherit"
+              aria-label="Открыть меню пользователя"
+              onClick={handleUserMenuOpen}
+              size="small"
+              sx={{ ml: 1 }}
+            >
+              <Avatar sx={{ width: 32, height: 32 }}>{userInitial}</Avatar>
+            </IconButton>
+          </Tooltip>
+          <Menu
+            anchorEl={userMenuAnchor}
+            open={isUserMenuOpen}
+            onClose={handleUserMenuClose}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            keepMounted
+          >
+            <MenuItem disabled sx={{ gap: 1, opacity: 1 }}>
+              <ListItemIcon>
+                <AccountCircleIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText
+                primary={user.email}
+                secondary="Аккаунт"
+                primaryTypographyProps={{ fontWeight: 600 }}
+              />
+            </MenuItem>
+            <Divider sx={{ my: 0.5 }} />
+            <MenuItem onClick={handleLogoutClick} disabled={logoutPending} sx={{ gap: 1 }}>
+              <ListItemIcon>
+                <LogoutIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Выйти" />
+            </MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
 

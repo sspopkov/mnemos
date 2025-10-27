@@ -1,0 +1,85 @@
+import axios, {
+  AxiosError,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+} from 'axios';
+
+import { useAuthStore } from '../store/auth';
+
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    _retry?: boolean;
+  }
+}
+
+const api = axios.create({ withCredentials: true });
+const refreshClient = axios.create({ withCredentials: true });
+
+let refreshPromise: Promise<void> | null = null;
+
+const performRefresh = async () => {
+  try {
+    const response = await refreshClient.post<
+      { accessToken: string; user: { id: string; email: string; createdAt: string; updatedAt: string } },
+      AxiosResponse<{ accessToken: string; user: { id: string; email: string; createdAt: string; updatedAt: string } }>
+    >('/api/auth/refresh');
+
+    const { accessToken, user } = response.data;
+    useAuthStore.getState().setAuth({ accessToken, user });
+  } catch (error) {
+    useAuthStore.getState().clearAuth();
+    throw error;
+  }
+};
+
+api.interceptors.request.use((config) => {
+  const token = useAuthStore.getState().accessToken;
+  if (token) {
+    config.headers = {
+      ...config.headers,
+      Authorization: `Bearer ${token}`,
+    };
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const { response, config } = error;
+    const isAuthRefresh = config?.url?.includes('/api/auth/refresh');
+
+    if (response?.status === 401 && config && !config._retry && !isAuthRefresh) {
+      config._retry = true;
+
+      try {
+        refreshPromise = refreshPromise ?? performRefresh();
+        await refreshPromise;
+        refreshPromise = null;
+
+        const token = useAuthStore.getState().accessToken;
+        if (token) {
+          config.headers = {
+            ...config.headers,
+            Authorization: `Bearer ${token}`,
+          };
+        }
+
+        return api(config);
+      } catch (refreshError) {
+        refreshPromise = null;
+        throw refreshError;
+      }
+    }
+
+    throw error;
+  },
+);
+
+export const httpClient = <T = unknown, R = AxiosResponse<T>>(
+  config: AxiosRequestConfig,
+): Promise<R> => {
+  return api.request<T, R>(config);
+};
+
+export const rawRefresh = () => refreshClient.post('/api/auth/refresh');
