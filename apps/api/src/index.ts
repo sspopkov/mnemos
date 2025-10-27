@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import fastifyCors from '@fastify/cors';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
+import fastifySensible from '@fastify/sensible';
 import { Type } from '@sinclair/typebox';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
@@ -48,6 +49,8 @@ async function bootstrap() {
   });
 
   // ⬇️ Регистрируем глобальный обработчик ошибок — обязательно ДО роутов
+  await server.register(fastifySensible);
+
   await server.register(errorsPlugin);
   await server.register(authPlugin);
 
