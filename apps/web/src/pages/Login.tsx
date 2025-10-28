@@ -1,13 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import {
-  Alert,
-  Box,
-  Button,
-  Link as MuiLink,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Alert, Box, Button, Link as MuiLink, Stack, TextField, Typography } from '@mui/material';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -58,10 +50,9 @@ const LoginPage = () => {
     }
   };
 
-  const handleChange = (field: keyof LoginFormState) =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      setForm((prev) => ({ ...prev, [field]: event.target.value }));
-    };
+  const handleChange = (field: keyof LoginFormState) => (event: ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, [field]: event.target.value }));
+  };
 
   return (
     <AuthLayout title="Вход" description="Войдите, чтобы продолжить работу с Mnemos">

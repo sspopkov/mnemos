@@ -26,14 +26,11 @@ export default fp(async function authPlugin(app: FastifyInstance) {
     sign: { expiresIn: env.jwtAccessTtl },
   });
 
-  app.decorate(
-    'authenticate',
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      try {
-        await request.jwtVerify();
-      } catch (error) {
-        return reply.send(error);
-      }
-    },
-  );
+  app.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      return reply.code(401).send({ message: 'Unauthorized' });
+    }
+  });
 });

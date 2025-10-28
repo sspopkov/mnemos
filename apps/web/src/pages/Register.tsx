@@ -1,13 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import {
-  Alert,
-  Box,
-  Button,
-  Link as MuiLink,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Alert, Box, Button, Link as MuiLink, Stack, TextField, Typography } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -60,8 +52,8 @@ const RegisterPage = () => {
     }
   };
 
-  const handleChange = (field: keyof RegisterFormState) =>
-    (event: ChangeEvent<HTMLInputElement>) => {
+  const handleChange =
+    (field: keyof RegisterFormState) => (event: ChangeEvent<HTMLInputElement>) => {
       setForm((prev) => ({ ...prev, [field]: event.target.value }));
     };
 

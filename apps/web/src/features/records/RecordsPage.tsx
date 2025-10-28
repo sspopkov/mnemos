@@ -27,8 +27,8 @@ import {
   useUpdateRecord,
   useDeleteRecord,
   getGetRecordsQueryKey,
-  type Record as ApiRecord,
-  type ApiError,
+  type GetRecords200Item as ApiRecord,
+  type Def0 as ApiError,
 } from '../../api';
 import { useQueryClient } from '@tanstack/react-query';
 import { getErrorMessage } from '../../utils/errors';

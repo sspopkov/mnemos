@@ -111,7 +111,9 @@ export const App = () => {
           <Route path="/register" element={<RegisterPage />} />
           <Route element={<RequireAuth />}>
             <Route
-              element={<ProtectedLayout colorMode={mode} onToggleColorMode={handleToggleColorMode} />}
+              element={
+                <ProtectedLayout colorMode={mode} onToggleColorMode={handleToggleColorMode} />
+              }
             >
               <Route index element={<Home />} />
               <Route path="records" element={<RecordsPage />} />
