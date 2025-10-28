@@ -1,11 +1,12 @@
 import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 
 import { useAuthStore } from '../store/auth';
-import type { Def2, Refresh200 } from './index.ts';
+import { type Def2, type Refresh200 } from './index.ts';
 
 declare module 'axios' {
   interface AxiosRequestConfig {
     _retry?: boolean;
+    _requiresAuth?: boolean;
   }
 }
 
@@ -29,6 +30,7 @@ api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken;
   if (token) {
     config.headers.set('Authorization', `Bearer ${token}`);
+    config._requiresAuth = true;
   }
   return config;
 });
@@ -39,7 +41,13 @@ api.interceptors.response.use(
     const { response, config } = error;
     const isAuthRefresh = config?.url?.includes('/api/auth/refresh');
 
-    if (response?.status === 401 && config && !config._retry && !isAuthRefresh) {
+    if (
+      response?.status === 401 &&
+      config &&
+      !config._retry &&
+      !isAuthRefresh &&
+      config._requiresAuth
+    ) {
       config._retry = true;
 
       try {
@@ -68,5 +76,3 @@ export const httpClient = <T = unknown, R = AxiosResponse<T>>(
 ): Promise<R> => {
   return api.request<T, R>(config);
 };
-
-export const rawRefresh = () => refreshClient.post('/api/auth/refresh');

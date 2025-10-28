@@ -11,9 +11,8 @@ import RecordsPage from '../features/records/RecordsPage';
 import LoginPage from '../pages/Login';
 import RegisterPage from '../pages/Register';
 import { getDesignTokens } from '../utils/theme';
-import { rawRefresh } from '../api/http';
 import { useAuthStore, selectAuthInitialized, selectAuthUser } from '../store/auth';
-import { useLogout } from '../api';
+import { refresh, useLogout } from '../api';
 
 const navigation: NavigationItem[] = [
   { label: 'Главная', href: '/', description: 'Обзор состояния сервисов' },
@@ -82,7 +81,7 @@ export const App = () => {
 
     const fetchSession = async () => {
       try {
-        const response = await rawRefresh();
+        const response = await refresh();
         const { accessToken, user } = response.data as {
           accessToken: string;
           user: { id: string; email: string; createdAt: string; updatedAt: string };
