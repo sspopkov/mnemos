@@ -4,6 +4,7 @@ import {
   Avatar,
   Box,
   Button,
+  CircularProgress,
   Link as MuiLink,
   Stack,
   TextField,
@@ -17,7 +18,7 @@ import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import AuthLayout from '../app/layout/AuthLayout';
 import { useLogin, useLogout } from '../api';
 import { getErrorMessage } from '../utils/errors';
-import { selectAuthUser, useAuthStore } from '../store/auth';
+import { selectAuthInitialized, selectAuthUser, useAuthStore } from '../store/auth';
 
 type LoginFormState = {
   email: string;
@@ -34,13 +35,16 @@ const LoginPage = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const user = useAuthStore(selectAuthUser);
+  const initialized = useAuthStore(selectAuthInitialized);
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const loginMutation = useLogin({
     mutation: {
       onSuccess: (response) => {
+        setIsRedirecting(true);
         const { accessToken, user } = response.data;
         setAuth({ accessToken, user });
         queryClient.clear();
@@ -87,6 +91,38 @@ const LoginPage = () => {
       setError(null);
     }
   };
+
+  if (!initialized) {
+    return (
+      <AuthLayout
+        title="Проверяем авторизацию"
+        description="Пожалуйста, подождите, мы загружаем состояние вашей сессии."
+      >
+        <Stack spacing={2} alignItems="center">
+          <CircularProgress />
+          <Typography variant="body2" color="text.secondary">
+            Загружаем данные…
+          </Typography>
+        </Stack>
+      </AuthLayout>
+    );
+  }
+
+  if (isRedirecting) {
+    return (
+      <AuthLayout
+        title="Перенаправляем"
+        description="Подождите секунду, мы открываем нужную страницу."
+      >
+        <Stack spacing={2} alignItems="center">
+          <CircularProgress />
+          <Typography variant="body2" color="text.secondary">
+            Перенаправляем…
+          </Typography>
+        </Stack>
+      </AuthLayout>
+    );
+  }
 
   if (user) {
     return (
