@@ -23,7 +23,12 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
 
-# сборка
+# ✅ ВАЖНО: сгенерировать Prisma Client ДО компиляции TS
+# (скрипт @mnemos/api prisma:generate должен вызывать `prisma generate`
+#  в каталоге пакета, где schema лежит в ./prisma/schema.prisma)
+RUN pnpm -F @mnemos/api prisma:generate
+
+# сборка TS
 RUN pnpm --filter @mnemos/api build
 
 # собрать самодостаточный прод-бандл пакета
@@ -31,9 +36,6 @@ RUN pnpm --filter @mnemos/api deploy --prod /out
 
 # ✅ Скопируем prisma схему прямо из исходников api в /out (без промежуточного ./prisma)
 RUN mkdir -p /out/prisma && cp -r apps/api/prisma/* /out/prisma/
-
-# ✅ ОДНА генерация Prisma Client — уже в /out
-RUN pnpm --dir /out prisma:generate
 
 # ---------- runtime ----------
 FROM node:20-bookworm-slim
