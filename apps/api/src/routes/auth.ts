@@ -109,7 +109,7 @@ const setRefreshCookie = (reply: FastifyReply, token: string, expiresAt: Date) =
   const maxAgeSeconds = Math.max(0, Math.floor((expiresAt.getTime() - now) / 1000));
 
   reply.setCookie(env.refreshCookieName, token, {
-    path: '/',
+    path: '/api/auth',
     httpOnly: true,
     sameSite: 'lax',
     secure: env.cookieSecure,
@@ -121,7 +121,7 @@ const setRefreshCookie = (reply: FastifyReply, token: string, expiresAt: Date) =
 
 const clearRefreshCookie = (reply: FastifyReply) => {
   reply.clearCookie(env.refreshCookieName, {
-    path: '/',
+    path: '/api/auth',
     httpOnly: true,
     sameSite: 'lax',
     secure: env.cookieSecure,
