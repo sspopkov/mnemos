@@ -29,6 +29,23 @@ type LocationState = {
   from?: { pathname: string };
 };
 
+type StatusLayoutProps = {
+  title: string;
+  description: string;
+  message: string;
+};
+
+const renderStatusLayout = ({ title, description, message }: StatusLayoutProps) => (
+  <AuthLayout title={title} description={description}>
+    <Stack spacing={2} alignItems="center">
+      <CircularProgress />
+      <Typography variant="body2" color="text.secondary">
+        {message}
+      </Typography>
+    </Stack>
+  </AuthLayout>
+);
+
 const LoginPage = () => {
   const [form, setForm] = useState<LoginFormState>({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
@@ -93,35 +110,19 @@ const LoginPage = () => {
   };
 
   if (!initialized) {
-    return (
-      <AuthLayout
-        title="Проверяем авторизацию"
-        description="Пожалуйста, подождите, мы загружаем состояние вашей сессии."
-      >
-        <Stack spacing={2} alignItems="center">
-          <CircularProgress />
-          <Typography variant="body2" color="text.secondary">
-            Загружаем данные…
-          </Typography>
-        </Stack>
-      </AuthLayout>
-    );
+    return renderStatusLayout({
+      title: 'Проверяем авторизацию',
+      description: 'Пожалуйста, подождите, мы загружаем состояние вашей сессии.',
+      message: 'Загружаем данные…',
+    });
   }
 
   if (isRedirecting) {
-    return (
-      <AuthLayout
-        title="Перенаправляем"
-        description="Подождите секунду, мы открываем нужную страницу."
-      >
-        <Stack spacing={2} alignItems="center">
-          <CircularProgress />
-          <Typography variant="body2" color="text.secondary">
-            Перенаправляем…
-          </Typography>
-        </Stack>
-      </AuthLayout>
-    );
+    return renderStatusLayout({
+      title: 'Перенаправляем',
+      description: 'Подождите секунду, мы открываем нужную страницу.',
+      message: 'Перенаправляем…',
+    });
   }
 
   if (user) {
