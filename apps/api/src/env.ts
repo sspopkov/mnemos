@@ -18,11 +18,11 @@ const booleanFromEnv = (value: BooleanEnv, fallback: boolean): boolean => {
   return fallback;
 };
 
-const TEST_ACCESS_TOKEN_TTL = '2m';
-// const PROD_ACCESS_TOKEN_TTL = '10m';
+const TEST_ACCESS_TOKEN_TTL = '1m';
 
 const TEST_REFRESH_TOKEN_TTL_DAYS = 2 / (24 * 60);
-// const PROD_REFRESH_TOKEN_TTL_DAYS = 14;
+
+const TEST_REFRESH_ABSOLUTE_MAX_DAYS = 3 / (24 * 60);
 
 export const env = {
   host: process.env.HOST ?? '0.0.0.0',
@@ -33,6 +33,10 @@ export const env = {
   refreshTokenTtlDays: numberFromEnv(
     process.env.REFRESH_TOKEN_TTL_DAYS,
     TEST_REFRESH_TOKEN_TTL_DAYS,
+  ),
+  refreshAbsoluteMaxDays: numberFromEnv(
+    process.env.REFRESH_ABSOLUTE_MAX_DAYS,
+    TEST_REFRESH_ABSOLUTE_MAX_DAYS,
   ),
   refreshCookieName: process.env.REFRESH_COOKIE_NAME ?? 'mnemos-refresh',
   cookieDomain: process.env.COOKIE_DOMAIN,
