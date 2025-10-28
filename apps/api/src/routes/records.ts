@@ -70,6 +70,7 @@ export async function recordsRoutes(app: FastifyInstance) {
   app.get<{ Reply: RecordEntity[] }>(
     '/api/records',
     {
+      onRequest: [app.authenticate],
       schema: {
         tags: ['records'],
         summary: 'List records',
@@ -78,10 +79,14 @@ export async function recordsRoutes(app: FastifyInstance) {
           200: RecordListSchema,
           ...errorResponses, // 400/401/403/404/409/500 -> { $ref: 'ApiError#' }
         },
+        security: [{ bearerAuth: [] }],
       },
     },
-    async () => {
-      const rows = await prisma.record.findMany({ orderBy: { createdAt: 'desc' } });
+    async (req) => {
+      const rows = await prisma.record.findMany({
+        where: { userId: req.user.sub },
+        orderBy: { createdAt: 'desc' },
+      });
       return rows.map(toRecordEntity);
     },
   );
@@ -90,6 +95,7 @@ export async function recordsRoutes(app: FastifyInstance) {
   app.post<{ Body: CreateRecordBody; Reply: RecordEntity }>(
     '/api/records',
     {
+      onRequest: [app.authenticate],
       schema: {
         tags: ['records'],
         summary: 'Create record',
@@ -99,11 +105,16 @@ export async function recordsRoutes(app: FastifyInstance) {
           201: RecordSchema,
           ...errorResponses,
         },
+        security: [{ bearerAuth: [] }],
       },
     },
     async (req, reply) => {
       const rec = await prisma.record.create({
-        data: { title: req.body.title, content: req.body.content ?? null },
+        data: {
+          title: req.body.title,
+          content: req.body.content ?? null,
+          userId: req.user.sub,
+        },
       });
       return reply.code(201).send(toRecordEntity(rec));
     },
@@ -113,6 +124,7 @@ export async function recordsRoutes(app: FastifyInstance) {
   app.put<{ Params: RecordParams; Body: UpdateRecordBody; Reply: RecordEntity }>(
     '/api/records/:id',
     {
+      onRequest: [app.authenticate],
       schema: {
         tags: ['records'],
         summary: 'Update record',
@@ -123,9 +135,18 @@ export async function recordsRoutes(app: FastifyInstance) {
           200: RecordSchema,
           ...errorResponses,
         },
+        security: [{ bearerAuth: [] }],
       },
     },
     async (req) => {
+      const existing = await prisma.record.findFirst({
+        where: { id: req.params.id, userId: req.user.sub },
+      });
+
+      if (!existing) {
+        throw app.httpErrors.notFound('Record not found');
+      }
+
       const rec = await prisma.record.update({
         where: { id: req.params.id },
         data: {
@@ -141,6 +162,7 @@ export async function recordsRoutes(app: FastifyInstance) {
   app.delete<{ Params: RecordParams; Reply: DeleteRecordResponse }>(
     '/api/records/:id',
     {
+      onRequest: [app.authenticate],
       schema: {
         tags: ['records'],
         summary: 'Delete record',
@@ -150,10 +172,18 @@ export async function recordsRoutes(app: FastifyInstance) {
           200: DeleteRecordResponseSchema,
           ...errorResponses,
         },
+        security: [{ bearerAuth: [] }],
       },
     },
     async (req) => {
-      await prisma.record.delete({ where: { id: req.params.id } });
+      const result = await prisma.record.deleteMany({
+        where: { id: req.params.id, userId: req.user.sub },
+      });
+
+      if (result.count === 0) {
+        throw app.httpErrors.notFound('Record not found');
+      }
+
       return { ok: true as const };
     },
   );

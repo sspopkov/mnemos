@@ -6,7 +6,13 @@ export default defineConfig({
     output: {
       target: '../../apps/web/src/api/index.ts',
       client: 'react-query',
-      clean: true,
+      clean: false,
+      override: {
+        mutator: {
+          path: '../../apps/web/src/api/http.ts',
+          name: 'httpClient',
+        },
+      },
     },
   },
 });

@@ -15,13 +15,33 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 
-import axios from 'axios';
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-
+import { httpClient } from './http';
 export interface Def0 {
   message: string;
   code?: string;
   details?: unknown;
+}
+
+export interface Def1 {
+  /** @minLength 1 */
+  id: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type Def2User = {
+  /** @minLength 1 */
+  id: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export interface Def2 {
+  /** @minLength 1 */
+  accessToken: string;
+  user: Def2User;
 }
 
 export type GetHealth200 = {
@@ -29,9 +49,79 @@ export type GetHealth200 = {
   ts: string;
 };
 
+export type RegisterBody = {
+  email: string;
+  /**
+   * Минимум 8 символов
+   * @minLength 8
+   */
+  password: string;
+};
+
+export type Register201User = {
+  /** @minLength 1 */
+  id: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Register201 = {
+  /** @minLength 1 */
+  accessToken: string;
+  user: Register201User;
+};
+
+export type LoginBody = {
+  email: string;
+  /** @minLength 1 */
+  password: string;
+};
+
+export type Login200User = {
+  /** @minLength 1 */
+  id: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Login200 = {
+  /** @minLength 1 */
+  accessToken: string;
+  user: Login200User;
+};
+
+export type Refresh200User = {
+  /** @minLength 1 */
+  id: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Refresh200 = {
+  /** @minLength 1 */
+  accessToken: string;
+  user: Refresh200User;
+};
+
+export type Logout200 = {
+  ok: boolean;
+};
+
+export type GetCurrentUser200 = {
+  /** @minLength 1 */
+  id: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type GetRecords200ItemContent = string | null;
 
 export type GetRecords200Item = {
+  /** @minLength 1 */
   id: string;
   title: string;
   content: GetRecords200ItemContent;
@@ -50,6 +140,7 @@ export type CreateRecordBody = {
 export type CreateRecord201Content = string | null;
 
 export type CreateRecord201 = {
+  /** @minLength 1 */
   id: string;
   title: string;
   content: CreateRecord201Content;
@@ -68,6 +159,7 @@ export type UpdateRecordBody = {
 export type UpdateRecord200Content = string | null;
 
 export type UpdateRecord200 = {
+  /** @minLength 1 */
   id: string;
   title: string;
   content: UpdateRecord200Content;
@@ -86,8 +178,8 @@ type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 /**
  * @summary Health check
  */
-export const getHealth = (options?: AxiosRequestConfig): Promise<AxiosResponse<GetHealth200>> => {
-  return axios.get(`/api/health`, options);
+export const getHealth = (signal?: AbortSignal) => {
+  return httpClient<GetHealth200>({ url: `/api/health`, method: 'GET', signal });
 };
 
 export const getGetHealthQueryKey = () => {
@@ -96,17 +188,16 @@ export const getGetHealthQueryKey = () => {
 
 export const getGetHealthQueryOptions = <
   TData = Awaited<ReturnType<typeof getHealth>>,
-  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>;
-  axios?: AxiosRequestConfig;
 }) => {
-  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetHealthQueryKey();
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getHealth>>> = ({ signal }) =>
-    getHealth({ signal, ...axiosOptions });
+    getHealth(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getHealth>>,
@@ -116,7 +207,7 @@ export const getGetHealthQueryOptions = <
 };
 
 export type GetHealthQueryResult = NonNullable<Awaited<ReturnType<typeof getHealth>>>;
-export type GetHealthQueryError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>;
+export type GetHealthQueryError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0;
 
 /**
  * @summary Health check
@@ -124,10 +215,9 @@ export type GetHealthQueryError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | 
 
 export function useGetHealth<
   TData = Awaited<ReturnType<typeof getHealth>>,
-  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>;
-  axios?: AxiosRequestConfig;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetHealthQueryOptions(options);
 
@@ -139,12 +229,299 @@ export function useGetHealth<
 }
 
 /**
+ * @summary Register user
+ */
+export const register = (registerBody: RegisterBody, signal?: AbortSignal) => {
+  return httpClient<Register201>({
+    url: `/api/auth/register`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: registerBody,
+    signal,
+  });
+};
+
+export const getRegisterMutationOptions = <
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof register>>,
+    TError,
+    { data: RegisterBody },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof register>>,
+  TError,
+  { data: RegisterBody },
+  TContext
+> => {
+  const mutationKey = ['register'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof register>>,
+    { data: RegisterBody }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return register(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RegisterMutationResult = NonNullable<Awaited<ReturnType<typeof register>>>;
+export type RegisterMutationBody = RegisterBody;
+export type RegisterMutationError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0;
+
+/**
+ * @summary Register user
+ */
+export const useRegister = <
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof register>>,
+    TError,
+    { data: RegisterBody },
+    TContext
+  >;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof register>>,
+  TError,
+  { data: RegisterBody },
+  TContext
+> => {
+  const mutationOptions = getRegisterMutationOptions(options);
+
+  return useMutation(mutationOptions);
+};
+
+/**
+ * @summary Login user
+ */
+export const login = (loginBody: LoginBody, signal?: AbortSignal) => {
+  return httpClient<Login200>({
+    url: `/api/auth/login`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: loginBody,
+    signal,
+  });
+};
+
+export const getLoginMutationOptions = <
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof login>>,
+    TError,
+    { data: LoginBody },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof login>>,
+  TError,
+  { data: LoginBody },
+  TContext
+> => {
+  const mutationKey = ['login'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof login>>, { data: LoginBody }> = (
+    props,
+  ) => {
+    const { data } = props ?? {};
+
+    return login(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LoginMutationResult = NonNullable<Awaited<ReturnType<typeof login>>>;
+export type LoginMutationBody = LoginBody;
+export type LoginMutationError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0;
+
+/**
+ * @summary Login user
+ */
+export const useLogin = <
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof login>>,
+    TError,
+    { data: LoginBody },
+    TContext
+  >;
+}): UseMutationResult<Awaited<ReturnType<typeof login>>, TError, { data: LoginBody }, TContext> => {
+  const mutationOptions = getLoginMutationOptions(options);
+
+  return useMutation(mutationOptions);
+};
+
+/**
+ * @summary Refresh access token
+ */
+export const refresh = (signal?: AbortSignal) => {
+  return httpClient<Refresh200>({ url: `/api/auth/refresh`, method: 'POST', signal });
+};
+
+export const getRefreshMutationOptions = <
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError, void, TContext>;
+}): UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError, void, TContext> => {
+  const mutationKey = ['refresh'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof refresh>>, void> = () => {
+    return refresh();
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RefreshMutationResult = NonNullable<Awaited<ReturnType<typeof refresh>>>;
+
+export type RefreshMutationError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0;
+
+/**
+ * @summary Refresh access token
+ */
+export const useRefresh = <
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError, void, TContext>;
+}): UseMutationResult<Awaited<ReturnType<typeof refresh>>, TError, void, TContext> => {
+  const mutationOptions = getRefreshMutationOptions(options);
+
+  return useMutation(mutationOptions);
+};
+
+/**
+ * @summary Logout user
+ */
+export const logout = (signal?: AbortSignal) => {
+  return httpClient<Logout200>({ url: `/api/auth/logout`, method: 'POST', signal });
+};
+
+export const getLogoutMutationOptions = <
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError, void, TContext>;
+}): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError, void, TContext> => {
+  const mutationKey = ['logout'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof logout>>, void> = () => {
+    return logout();
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LogoutMutationResult = NonNullable<Awaited<ReturnType<typeof logout>>>;
+
+export type LogoutMutationError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0;
+
+/**
+ * @summary Logout user
+ */
+export const useLogout = <
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError, void, TContext>;
+}): UseMutationResult<Awaited<ReturnType<typeof logout>>, TError, void, TContext> => {
+  const mutationOptions = getLogoutMutationOptions(options);
+
+  return useMutation(mutationOptions);
+};
+
+/**
+ * @summary Get current user
+ */
+export const getCurrentUser = (signal?: AbortSignal) => {
+  return httpClient<GetCurrentUser200>({ url: `/api/auth/me`, method: 'GET', signal });
+};
+
+export const getGetCurrentUserQueryKey = () => {
+  return [`/api/auth/me`] as const;
+};
+
+export const getGetCurrentUserQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCurrentUser>>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getCurrentUser>>, TError, TData>;
+}) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCurrentUserQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCurrentUser>>> = ({ signal }) =>
+    getCurrentUser(signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCurrentUser>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCurrentUserQueryResult = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
+export type GetCurrentUserQueryError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0;
+
+/**
+ * @summary Get current user
+ */
+
+export function useGetCurrentUser<
+  TData = Awaited<ReturnType<typeof getCurrentUser>>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getCurrentUser>>, TError, TData>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCurrentUserQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
  * @summary List records
  */
-export const getRecords = (
-  options?: AxiosRequestConfig,
-): Promise<AxiosResponse<GetRecords200Item[]>> => {
-  return axios.get(`/api/records`, options);
+export const getRecords = (signal?: AbortSignal) => {
+  return httpClient<GetRecords200Item[]>({ url: `/api/records`, method: 'GET', signal });
 };
 
 export const getGetRecordsQueryKey = () => {
@@ -153,17 +530,16 @@ export const getGetRecordsQueryKey = () => {
 
 export const getGetRecordsQueryOptions = <
   TData = Awaited<ReturnType<typeof getRecords>>,
-  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof getRecords>>, TError, TData>;
-  axios?: AxiosRequestConfig;
 }) => {
-  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetRecordsQueryKey();
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecords>>> = ({ signal }) =>
-    getRecords({ signal, ...axiosOptions });
+    getRecords(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getRecords>>,
@@ -173,7 +549,7 @@ export const getGetRecordsQueryOptions = <
 };
 
 export type GetRecordsQueryResult = NonNullable<Awaited<ReturnType<typeof getRecords>>>;
-export type GetRecordsQueryError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>;
+export type GetRecordsQueryError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0;
 
 /**
  * @summary List records
@@ -181,10 +557,9 @@ export type GetRecordsQueryError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 |
 
 export function useGetRecords<
   TData = Awaited<ReturnType<typeof getRecords>>,
-  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof getRecords>>, TError, TData>;
-  axios?: AxiosRequestConfig;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetRecordsQueryOptions(options);
 
@@ -198,15 +573,18 @@ export function useGetRecords<
 /**
  * @summary Create record
  */
-export const createRecord = (
-  createRecordBody: CreateRecordBody,
-  options?: AxiosRequestConfig,
-): Promise<AxiosResponse<CreateRecord201>> => {
-  return axios.post(`/api/records`, createRecordBody, options);
+export const createRecord = (createRecordBody: CreateRecordBody, signal?: AbortSignal) => {
+  return httpClient<CreateRecord201>({
+    url: `/api/records`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: createRecordBody,
+    signal,
+  });
 };
 
 export const getCreateRecordMutationOptions = <
-  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -215,7 +593,6 @@ export const getCreateRecordMutationOptions = <
     { data: CreateRecordBody },
     TContext
   >;
-  axios?: AxiosRequestConfig;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createRecord>>,
   TError,
@@ -223,11 +600,11 @@ export const getCreateRecordMutationOptions = <
   TContext
 > => {
   const mutationKey = ['createRecord'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createRecord>>,
@@ -235,7 +612,7 @@ export const getCreateRecordMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return createRecord(data, axiosOptions);
+    return createRecord(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -243,13 +620,13 @@ export const getCreateRecordMutationOptions = <
 
 export type CreateRecordMutationResult = NonNullable<Awaited<ReturnType<typeof createRecord>>>;
 export type CreateRecordMutationBody = CreateRecordBody;
-export type CreateRecordMutationError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>;
+export type CreateRecordMutationError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0;
 
 /**
  * @summary Create record
  */
 export const useCreateRecord = <
-  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -258,7 +635,6 @@ export const useCreateRecord = <
     { data: CreateRecordBody },
     TContext
   >;
-  axios?: AxiosRequestConfig;
 }): UseMutationResult<
   Awaited<ReturnType<typeof createRecord>>,
   TError,
@@ -273,16 +649,17 @@ export const useCreateRecord = <
 /**
  * @summary Update record
  */
-export const updateRecord = (
-  id: string,
-  updateRecordBody: UpdateRecordBody,
-  options?: AxiosRequestConfig,
-): Promise<AxiosResponse<UpdateRecord200>> => {
-  return axios.put(`/api/records/${id}`, updateRecordBody, options);
+export const updateRecord = (id: string, updateRecordBody: UpdateRecordBody) => {
+  return httpClient<UpdateRecord200>({
+    url: `/api/records/${id}`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: updateRecordBody,
+  });
 };
 
 export const getUpdateRecordMutationOptions = <
-  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -291,7 +668,6 @@ export const getUpdateRecordMutationOptions = <
     { id: string; data: UpdateRecordBody },
     TContext
   >;
-  axios?: AxiosRequestConfig;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateRecord>>,
   TError,
@@ -299,11 +675,11 @@ export const getUpdateRecordMutationOptions = <
   TContext
 > => {
   const mutationKey = ['updateRecord'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateRecord>>,
@@ -311,7 +687,7 @@ export const getUpdateRecordMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return updateRecord(id, data, axiosOptions);
+    return updateRecord(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -319,13 +695,13 @@ export const getUpdateRecordMutationOptions = <
 
 export type UpdateRecordMutationResult = NonNullable<Awaited<ReturnType<typeof updateRecord>>>;
 export type UpdateRecordMutationBody = UpdateRecordBody;
-export type UpdateRecordMutationError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>;
+export type UpdateRecordMutationError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0;
 
 /**
  * @summary Update record
  */
 export const useUpdateRecord = <
-  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -334,7 +710,6 @@ export const useUpdateRecord = <
     { id: string; data: UpdateRecordBody },
     TContext
   >;
-  axios?: AxiosRequestConfig;
 }): UseMutationResult<
   Awaited<ReturnType<typeof updateRecord>>,
   TError,
@@ -349,15 +724,12 @@ export const useUpdateRecord = <
 /**
  * @summary Delete record
  */
-export const deleteRecord = (
-  id: string,
-  options?: AxiosRequestConfig,
-): Promise<AxiosResponse<DeleteRecord200>> => {
-  return axios.delete(`/api/records/${id}`, options);
+export const deleteRecord = (id: string) => {
+  return httpClient<DeleteRecord200>({ url: `/api/records/${id}`, method: 'DELETE' });
 };
 
 export const getDeleteRecordMutationOptions = <
-  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -366,7 +738,6 @@ export const getDeleteRecordMutationOptions = <
     { id: string },
     TContext
   >;
-  axios?: AxiosRequestConfig;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteRecord>>,
   TError,
@@ -374,18 +745,18 @@ export const getDeleteRecordMutationOptions = <
   TContext
 > => {
   const mutationKey = ['deleteRecord'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteRecord>>, { id: string }> = (
     props,
   ) => {
     const { id } = props ?? {};
 
-    return deleteRecord(id, axiosOptions);
+    return deleteRecord(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -393,13 +764,13 @@ export const getDeleteRecordMutationOptions = <
 
 export type DeleteRecordMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRecord>>>;
 
-export type DeleteRecordMutationError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>;
+export type DeleteRecordMutationError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0;
 
 /**
  * @summary Delete record
  */
 export const useDeleteRecord = <
-  TError = AxiosError<Def0 | Def0 | Def0 | Def0 | Def0 | Def0>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -408,7 +779,6 @@ export const useDeleteRecord = <
     { id: string },
     TContext
   >;
-  axios?: AxiosRequestConfig;
 }): UseMutationResult<
   Awaited<ReturnType<typeof deleteRecord>>,
   TError,
