@@ -8,9 +8,6 @@ COPY .npmrc ./
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY tsconfig.base.json ./
 
-# ВАЖНО: схема и миграции нужны уже на этапе generate
-COPY apps/api/prisma ./prisma
-
 # package.json нужных воркспейсов
 COPY packages/types/package.json packages/types/package.json
 COPY apps/api/package.json apps/api/package.json
@@ -26,20 +23,17 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
 
-# теперь, когда prisma/ и исходники на месте — генерим клиент
-RUN pnpm -F @mnemos/api prisma:generate
-
 # сборка
 RUN pnpm --filter @mnemos/api build
 
-# главное: собрать самодостаточный прод-бандл пакета
+# собрать самодостаточный прод-бандл пакета
 RUN pnpm --filter @mnemos/api deploy --prod /out
 
-# после раскладывания прод-пакета prisma client теряется, перегенерим его прямо в /out
-RUN pnpm --dir /out prisma:generate
+# ✅ Скопируем prisma схему прямо из исходников api в /out (без промежуточного ./prisma)
+RUN mkdir -p /out/prisma && cp -r apps/api/prisma/* /out/prisma/
 
-# дополнительно убедимся, что prisma/ попадёт в /out
-RUN mkdir -p /out/prisma && cp -r prisma/* /out/prisma/
+# ✅ ОДНА генерация Prisma Client — уже в /out
+RUN pnpm --dir /out prisma:generate
 
 # ---------- runtime ----------
 FROM node:20-bookworm-slim
