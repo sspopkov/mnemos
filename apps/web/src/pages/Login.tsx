@@ -7,7 +7,7 @@ import AuthLayout from '../app/layout/AuthLayout';
 import { useLogin, useLogout } from '../api';
 import { getErrorMessage } from '../utils/errors';
 import { selectAuthInitialized, selectAuthUser, useAuthStore } from '../store/auth';
-import AuthStatusLayout from './components/AuthStatusLayout';
+import { AuthLoader } from '../app/RequireAuth';
 import AuthAuthenticatedLayout from './components/AuthAuthenticatedLayout';
 
 type LoginFormState = {
@@ -83,23 +83,11 @@ const LoginPage = () => {
   };
 
   if (!initialized) {
-    return (
-      <AuthStatusLayout
-        title="Проверяем авторизацию"
-        description="Пожалуйста, подождите, мы загружаем состояние вашей сессии."
-        message="Загружаем данные…"
-      />
-    );
+    return <AuthLoader />;
   }
 
   if (isRedirecting) {
-    return (
-      <AuthStatusLayout
-        title="Перенаправляем"
-        description="Подождите секунду, мы открываем нужную страницу."
-        message="Перенаправляем…"
-      />
-    );
+    return <AuthLoader message="Перенаправляем…" />;
   }
 
   if (user) {

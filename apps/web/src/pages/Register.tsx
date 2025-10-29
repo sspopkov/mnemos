@@ -7,7 +7,7 @@ import AuthLayout from '../app/layout/AuthLayout';
 import { useLogout, useRegister } from '../api';
 import { getErrorMessage } from '../utils/errors';
 import { selectAuthInitialized, selectAuthUser, useAuthStore } from '../store/auth';
-import AuthStatusLayout from './components/AuthStatusLayout';
+import { AuthLoader } from '../app/RequireAuth';
 import AuthAuthenticatedLayout from './components/AuthAuthenticatedLayout';
 
 type RegisterFormState = {
@@ -93,23 +93,11 @@ const RegisterPage = () => {
     form.password !== form.confirmPassword;
 
   if (!initialized) {
-    return (
-      <AuthStatusLayout
-        title="Проверяем авторизацию"
-        description="Пожалуйста, подождите, мы загружаем состояние вашей сессии."
-        message="Загружаем данные…"
-      />
-    );
+    return <AuthLoader />;
   }
 
   if (isRedirecting) {
-    return (
-      <AuthStatusLayout
-        title="Завершаем регистрацию"
-        description="Подождите секунду, мы готовим ваш аккаунт."
-        message="Перенаправляем…"
-      />
-    );
+    return <AuthLoader message="Перенаправляем…" />;
   }
 
   if (user) {

@@ -3,7 +3,11 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore, selectAuthInitialized, selectAuthUser } from '../store/auth';
 import { Box, CircularProgress, Stack, Typography } from '@mui/material';
 
-const LoadingScreen = () => (
+type AuthLoaderProps = {
+  message?: string;
+};
+
+export const AuthLoader = ({ message = 'Загружаем сессию…' }: AuthLoaderProps) => (
   <Box
     sx={{
       minHeight: '100vh',
@@ -15,7 +19,7 @@ const LoadingScreen = () => (
     <Stack spacing={2} alignItems="center">
       <CircularProgress />
       <Typography variant="body2" color="text.secondary">
-        Загружаем сессию…
+        {message}
       </Typography>
     </Stack>
   </Box>
@@ -27,7 +31,7 @@ export const RequireAuth = () => {
   const location = useLocation();
 
   if (!initialized) {
-    return <LoadingScreen />;
+    return <AuthLoader />;
   }
 
   if (!user) {
