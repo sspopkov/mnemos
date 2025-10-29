@@ -19,7 +19,13 @@ const navigation: NavigationItem[] = [
   { label: 'Главная', href: '/', description: 'Обзор состояния сервисов' },
   { label: 'Записи', href: '/records', description: 'CRUD по записям' },
   ...(import.meta.env.DEV
-    ? [{ label: 'Песочница', href: '/sandbox', description: 'Тест уведомлений' } satisfies NavigationItem]
+    ? [
+        {
+          label: 'Песочница',
+          href: '/sandbox',
+          description: 'Тест уведомлений',
+        } satisfies NavigationItem,
+      ]
     : []),
 ];
 

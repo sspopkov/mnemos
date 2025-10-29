@@ -27,7 +27,7 @@ createRoot(container).render(
     <QueryClientProvider client={queryClient}>
       <SnackbarProvider
         autoHideDuration={4000}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <App />
       </SnackbarProvider>
