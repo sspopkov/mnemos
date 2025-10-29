@@ -32,6 +32,7 @@ import {
 } from '../../api';
 import { useQueryClient } from '@tanstack/react-query';
 import { getErrorMessage } from '../../utils/errors';
+import { AlertDialog } from '../../components/AlertDialog';
 
 type EditFormData = { title: string; content: string };
 
@@ -78,6 +79,7 @@ const RecordsPage = () => {
 
   const [edit, setEdit] = useState<EditState>(null);
   const isOpen = edit !== null;
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const title = useMemo(
     () => (!edit ? '' : edit.mode === 'create' ? 'Новая запись' : 'Редактирование'),
@@ -108,10 +110,17 @@ const RecordsPage = () => {
     }
   };
 
-  const onDelete = async (id: string) => {
-    if (!confirm('Удалить запись?')) return;
+  const onDelete = (id: string) => {
+    setDeleteId(id);
+  };
+
+  const closeDeleteDialog = () => setDeleteId(null);
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
     try {
-      await deleteMut.mutateAsync({ id });
+      await deleteMut.mutateAsync({ id: deleteId });
+      setDeleteId(null);
     } catch (e) {
       alert(getErrorMessage(e));
     }
@@ -198,6 +207,18 @@ const RecordsPage = () => {
           </TableBody>
         </Table>
       </Box>
+
+      <AlertDialog
+        open={Boolean(deleteId)}
+        title="Удалить запись?"
+        description="Это действие нельзя будет отменить."
+        confirmText="Удалить"
+        confirmButtonColor="error"
+        onConfirm={confirmDelete}
+        onCancel={closeDeleteDialog}
+        disableConfirm={deleteMut.isPending}
+        disableCancel={deleteMut.isPending}
+      />
 
       <Dialog open={isOpen} onClose={() => setEdit(null)} fullWidth maxWidth="sm">
         <DialogTitle>{title}</DialogTitle>
