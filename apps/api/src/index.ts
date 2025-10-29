@@ -11,6 +11,7 @@ import { recordsRoutes } from './routes/records';
 import errorsPlugin, { errorResponses } from './plugins/errors';
 import authPlugin from './plugins/auth';
 import { authRoutes } from './routes/auth';
+import { sandboxRoutes } from './routes/sandbox';
 
 const server = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
 
@@ -72,6 +73,7 @@ async function bootstrap() {
 
   await server.register(authRoutes);
   await server.register(recordsRoutes);
+  await server.register(sandboxRoutes);
 
   await server.listen({ port: env.port, host: env.host });
   server.log.info(`API listening on http://${env.host}:${env.port}`);

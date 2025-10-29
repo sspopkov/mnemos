@@ -31,6 +31,8 @@ import {
   type Def0 as ApiError,
 } from '../../api';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSnackbar } from 'notistack';
+
 import { getErrorMessage } from '../../utils/errors';
 import { AlertDialog } from '../../components/AlertDialog';
 
@@ -43,6 +45,7 @@ type EditState =
 
 const RecordsPage = () => {
   const qc = useQueryClient();
+  const { enqueueSnackbar } = useSnackbar();
 
   const {
     data: rows = [],
@@ -61,19 +64,37 @@ const RecordsPage = () => {
 
   const createMut = useCreateRecord({
     mutation: {
-      onSuccess: () => qc.invalidateQueries({ queryKey: getGetRecordsQueryKey() }),
+      onSuccess: async () => {
+        await qc.invalidateQueries({ queryKey: getGetRecordsQueryKey() });
+        enqueueSnackbar('Запись создана', { variant: 'success' });
+      },
+      onError: (err) => {
+        enqueueSnackbar(getErrorMessage(err), { variant: 'error' });
+      },
     },
   });
 
   const updateMut = useUpdateRecord({
     mutation: {
-      onSuccess: () => qc.invalidateQueries({ queryKey: getGetRecordsQueryKey() }),
+      onSuccess: async () => {
+        await qc.invalidateQueries({ queryKey: getGetRecordsQueryKey() });
+        enqueueSnackbar('Запись обновлена', { variant: 'success' });
+      },
+      onError: (err) => {
+        enqueueSnackbar(getErrorMessage(err), { variant: 'error' });
+      },
     },
   });
 
   const deleteMut = useDeleteRecord({
     mutation: {
-      onSuccess: () => qc.invalidateQueries({ queryKey: getGetRecordsQueryKey() }),
+      onSuccess: async () => {
+        await qc.invalidateQueries({ queryKey: getGetRecordsQueryKey() });
+        enqueueSnackbar('Запись удалена', { variant: 'success' });
+      },
+      onError: (err) => {
+        enqueueSnackbar(getErrorMessage(err), { variant: 'error' });
+      },
     },
   });
 
@@ -105,8 +126,8 @@ const RecordsPage = () => {
         await updateMut.mutateAsync({ id: edit.id, data: edit.data });
       }
       setEdit(null);
-    } catch (e) {
-      alert(getErrorMessage(e));
+    } catch {
+      // уведомление показывается в обработчике onError мутации
     }
   };
 
@@ -121,8 +142,8 @@ const RecordsPage = () => {
     try {
       await deleteMut.mutateAsync({ id: deleteId });
       setDeleteId(null);
-    } catch (e) {
-      alert(getErrorMessage(e));
+    } catch {
+      // уведомление показывается в обработчике onError мутации
     }
   };
 
