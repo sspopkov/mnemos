@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { BrowserRouter, Route, Routes, useNavigate } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import type { PaletteMode } from '@mui/material';
@@ -14,6 +14,12 @@ import NotFound from '../pages/NotFound';
 import SandboxPage from '../pages/Sandbox';
 import { getDesignTokens } from '../utils/theme';
 import { useAuthStore, selectAuthInitialized, selectAuthUser } from '../store/auth';
+import {
+  selectPreferencesHydrated,
+  selectThemeMode,
+  selectToggleThemeMode,
+  useUserPreferencesStore,
+} from '../store/preferences';
 import { refresh, useLogout } from '../api';
 
 const navigation: NavigationItem[] = [
@@ -78,7 +84,9 @@ const ProtectedLayout = ({
 };
 
 export const App = () => {
-  const [mode, setMode] = useState<PaletteMode>('light');
+  const mode = useUserPreferencesStore(selectThemeMode);
+  const toggleColorMode = useUserPreferencesStore(selectToggleThemeMode);
+  const preferencesHydrated = useUserPreferencesStore(selectPreferencesHydrated);
   const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
   const setAuth = useAuthStore((state) => state.setAuth);
   const clearAuth = useAuthStore((state) => state.clearAuth);
@@ -108,9 +116,9 @@ export const App = () => {
     void fetchSession();
   }, [initialized, setAuth, clearAuth]);
 
-  const handleToggleColorMode = () => {
-    setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
-  };
+  if (!preferencesHydrated) {
+    return null;
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -121,9 +129,7 @@ export const App = () => {
           <Route path="/register" element={<RegisterPage />} />
           <Route element={<RequireAuth />}>
             <Route
-              element={
-                <ProtectedLayout colorMode={mode} onToggleColorMode={handleToggleColorMode} />
-              }
+              element={<ProtectedLayout colorMode={mode} onToggleColorMode={toggleColorMode} />}
             >
               <Route index element={<Home />} />
               <Route path="records" element={<RecordsPage />} />
