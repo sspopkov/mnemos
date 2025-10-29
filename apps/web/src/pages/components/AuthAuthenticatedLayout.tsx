@@ -23,12 +23,11 @@ const AuthAuthenticatedLayout = ({
   isLoggingOut,
 }: AuthAuthenticatedLayoutProps) => (
   <AuthLayout title={title} description={description}>
-    <Stack spacing={4} alignItems="center" textAlign="center">
-      <Avatar sx={{ bgcolor: 'primary.main', width: 72, height: 72 }}>
-        <PersonRoundedIcon fontSize="large" />
-      </Avatar>
-
-      <Stack spacing={1}>
+    <Stack spacing={4}>
+      <Stack spacing={1} alignItems="center" textAlign="center">
+        <Avatar sx={{ bgcolor: 'primary.main', width: 72, height: 72 }}>
+          <PersonRoundedIcon fontSize="large" />
+        </Avatar>
         <Typography variant="h6">{email}</Typography>
         <Typography variant="body2" color="text.secondary">
           {hint}
