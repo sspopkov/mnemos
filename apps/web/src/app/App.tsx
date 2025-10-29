@@ -10,6 +10,7 @@ import Home from '../pages/Home';
 import RecordsPage from '../features/records/RecordsPage';
 import LoginPage from '../pages/Login';
 import RegisterPage from '../pages/Register';
+import NotFound from '../pages/NotFound';
 import { getDesignTokens } from '../utils/theme';
 import { useAuthStore, selectAuthInitialized, selectAuthUser } from '../store/auth';
 import { refresh, useLogout } from '../api';
@@ -118,6 +119,7 @@ export const App = () => {
               <Route path="records" element={<RecordsPage />} />
             </Route>
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
