@@ -29,12 +29,12 @@ import {
   getGetRecordsQueryKey,
   type GetRecords200Item as ApiRecord,
   type Def0 as ApiError,
-} from '../../api';
+} from '../api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 
-import { getErrorMessage } from '../../utils/errors';
-import { AlertDialog } from '../../components/AlertDialog';
+import { getErrorMessage } from '../utils/errors';
+import { AlertDialog } from '../components/AlertDialog';
 
 type EditFormData = { title: string; content: string };
 

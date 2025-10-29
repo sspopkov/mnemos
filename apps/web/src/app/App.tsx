@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { AppShell, type NavigationItem } from './layout/AppShell';
 import RequireAuth from './RequireAuth';
 import Home from '../pages/Home';
-import RecordsPage from '../features/records/RecordsPage';
+import RecordsPage from '../pages/Records';
 import LoginPage from '../pages/Login';
 import RegisterPage from '../pages/Register';
 import NotFound from '../pages/NotFound';
