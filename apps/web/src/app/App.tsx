@@ -11,6 +11,7 @@ import RecordsPage from '../features/records/RecordsPage';
 import LoginPage from '../pages/Login';
 import RegisterPage from '../pages/Register';
 import NotFound from '../pages/NotFound';
+import SandboxPage from '../pages/Sandbox';
 import { getDesignTokens } from '../utils/theme';
 import { useAuthStore, selectAuthInitialized, selectAuthUser } from '../store/auth';
 import { refresh, useLogout } from '../api';
@@ -18,6 +19,15 @@ import { refresh, useLogout } from '../api';
 const navigation: NavigationItem[] = [
   { label: 'Главная', href: '/', description: 'Обзор состояния сервисов' },
   { label: 'Записи', href: '/records', description: 'CRUD по записям' },
+  ...(import.meta.env.DEV
+    ? [
+        {
+          label: 'Песочница',
+          href: '/sandbox',
+          description: 'Тест уведомлений',
+        } satisfies NavigationItem,
+      ]
+    : []),
 ];
 
 const ProtectedLayout = ({
@@ -117,6 +127,7 @@ export const App = () => {
             >
               <Route index element={<Home />} />
               <Route path="records" element={<RecordsPage />} />
+              {import.meta.env.DEV && <Route path="sandbox" element={<SandboxPage />} />}
             </Route>
           </Route>
           <Route path="*" element={<NotFound />} />

@@ -2,6 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+import { SnackbarProvider } from 'notistack';
+
 import { App } from './app/App';
 
 // Создаём общий клиент для всех запросов React Query
@@ -23,7 +25,12 @@ if (!container) {
 createRoot(container).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <SnackbarProvider
+        autoHideDuration={4000}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <App />
+      </SnackbarProvider>
     </QueryClientProvider>
   </StrictMode>,
 );

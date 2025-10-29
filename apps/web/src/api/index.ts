@@ -171,6 +171,10 @@ export type DeleteRecord200 = {
   ok: boolean;
 };
 
+export type GetApiSandboxSuccess200 = {
+  message: string;
+};
+
 type AwaitedInput<T> = PromiseLike<T> | T;
 
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
@@ -789,3 +793,117 @@ export const useDeleteRecord = <
 
   return useMutation(mutationOptions);
 };
+
+/**
+ * @summary Trigger sandbox success notification
+ */
+export const getApiSandboxSuccess = (signal?: AbortSignal) => {
+  return httpClient<GetApiSandboxSuccess200>({
+    url: `/api/sandbox/success`,
+    method: 'GET',
+    signal,
+  });
+};
+
+export const getGetApiSandboxSuccessQueryKey = () => {
+  return [`/api/sandbox/success`] as const;
+};
+
+export const getGetApiSandboxSuccessQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiSandboxSuccess>>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxSuccess>>, TError, TData>;
+}) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetApiSandboxSuccessQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiSandboxSuccess>>> = ({ signal }) =>
+    getApiSandboxSuccess(signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiSandboxSuccess>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetApiSandboxSuccessQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiSandboxSuccess>>
+>;
+export type GetApiSandboxSuccessQueryError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0;
+
+/**
+ * @summary Trigger sandbox success notification
+ */
+
+export function useGetApiSandboxSuccess<
+  TData = Awaited<ReturnType<typeof getApiSandboxSuccess>>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxSuccess>>, TError, TData>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetApiSandboxSuccessQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Trigger sandbox failure notification
+ */
+export const getApiSandboxFailure = (signal?: AbortSignal) => {
+  return httpClient<unknown>({ url: `/api/sandbox/failure`, method: 'GET', signal });
+};
+
+export const getGetApiSandboxFailureQueryKey = () => {
+  return [`/api/sandbox/failure`] as const;
+};
+
+export const getGetApiSandboxFailureQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiSandboxFailure>>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxFailure>>, TError, TData>;
+}) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetApiSandboxFailureQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiSandboxFailure>>> = ({ signal }) =>
+    getApiSandboxFailure(signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiSandboxFailure>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetApiSandboxFailureQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiSandboxFailure>>
+>;
+export type GetApiSandboxFailureQueryError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0;
+
+/**
+ * @summary Trigger sandbox failure notification
+ */
+
+export function useGetApiSandboxFailure<
+  TData = Awaited<ReturnType<typeof getApiSandboxFailure>>,
+  TError = Def0 | Def0 | Def0 | Def0 | Def0 | Def0,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxFailure>>, TError, TData>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetApiSandboxFailureQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}

@@ -1,5 +1,12 @@
 import { type ReactNode } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, type ButtonProps } from '@mui/material';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  type ButtonProps,
+} from '@mui/material';
 
 export type AlertDialogProps = {
   open: boolean;
