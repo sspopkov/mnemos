@@ -10,6 +10,7 @@ import Home from '../pages/Home';
 import RecordsPage from '../features/records/RecordsPage';
 import LoginPage from '../pages/Login';
 import RegisterPage from '../pages/Register';
+import NotFound from '../pages/NotFound';
 import SandboxPage from '../pages/Sandbox';
 import { getDesignTokens } from '../utils/theme';
 import { useAuthStore, selectAuthInitialized, selectAuthUser } from '../store/auth';
@@ -129,6 +130,7 @@ export const App = () => {
               {import.meta.env.DEV && <Route path="sandbox" element={<SandboxPage />} />}
             </Route>
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
