@@ -4,9 +4,11 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 
 import AuthLayout from '../app/layout/AuthLayout';
-import { useRegister } from '../api';
+import { useLogout, useRegister } from '../api';
 import { getErrorMessage } from '../utils/errors';
-import { useAuthStore } from '../store/auth';
+import { selectAuthInitialized, selectAuthUser, useAuthStore } from '../store/auth';
+import AuthStatusLayout from './components/AuthStatusLayout';
+import AuthAuthenticatedLayout from './components/AuthAuthenticatedLayout';
 
 type RegisterFormState = {
   email: string;
@@ -21,17 +23,30 @@ const RegisterPage = () => {
     confirmPassword: '',
   });
   const [error, setError] = useState<string | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const setAuth = useAuthStore((state) => state.setAuth);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const user = useAuthStore(selectAuthUser);
+  const initialized = useAuthStore(selectAuthInitialized);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const registerMutation = useRegister({
     mutation: {
       onSuccess: (response) => {
+        setIsRedirecting(true);
         const { accessToken, user } = response.data;
         setAuth({ accessToken, user });
         queryClient.clear();
         navigate('/', { replace: true });
+      },
+    },
+  });
+
+  const logoutMutation = useLogout({
+    mutation: {
+      onSettled: () => {
+        queryClient.clear();
       },
     },
   });
@@ -57,12 +72,58 @@ const RegisterPage = () => {
       setForm((prev) => ({ ...prev, [field]: event.target.value }));
     };
 
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Ошибка при выходе из аккаунта', err);
+    } finally {
+      clearAuth();
+      setForm({ email: '', password: '', confirmPassword: '' });
+      setError(null);
+    }
+  };
+
   const isSubmitDisabled =
     registerMutation.isPending ||
     !form.email ||
     !form.password ||
     !form.confirmPassword ||
     form.password !== form.confirmPassword;
+
+  if (!initialized) {
+    return (
+      <AuthStatusLayout
+        title="Проверяем авторизацию"
+        description="Пожалуйста, подождите, мы загружаем состояние вашей сессии."
+        message="Загружаем данные…"
+      />
+    );
+  }
+
+  if (isRedirecting) {
+    return (
+      <AuthStatusLayout
+        title="Завершаем регистрацию"
+        description="Подождите секунду, мы готовим ваш аккаунт."
+        message="Перенаправляем…"
+      />
+    );
+  }
+
+  if (user) {
+    return (
+      <AuthAuthenticatedLayout
+        title="Вы уже авторизованы"
+        description={`Вы вошли как ${user.email}. Чтобы зарегистрировать новый аккаунт, сначала выйдите из текущего.`}
+        email={user.email}
+        hint="Чтобы создать другой аккаунт, выйдите из профиля и повторите регистрацию."
+        onLogout={handleLogout}
+        isLoggingOut={logoutMutation.isPending}
+      />
+    );
+  }
 
   return (
     <AuthLayout title="Регистрация" description="Создайте аккаунт Mnemos, чтобы начать работу">
