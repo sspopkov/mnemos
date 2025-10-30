@@ -7,11 +7,12 @@ import { Type } from '@sinclair/typebox';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 import { env } from './env';
-import { recordsRoutes } from './routes/records';
 import errorsPlugin, { errorResponses } from './plugins/errors';
 import authPlugin from './plugins/auth';
 import { authRoutes } from './routes/auth';
 import { sandboxRoutes } from './routes/sandbox';
+import { registerRecordSchemas } from './schemas';
+import { recordsRoutes } from './routes/records.routes';
 
 const server = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
 
@@ -31,6 +32,8 @@ async function bootstrap() {
     credentials: true,
   });
 
+  await registerRecordSchemas(server);
+
   await server.register(fastifySwagger, {
     openapi: {
       info: { title: 'Mnemos API', version: '1.0.0' },
@@ -45,10 +48,9 @@ async function bootstrap() {
       },
     },
     refResolver: {
-      buildLocalReference(json, _baseUri, _fragment, i) {
+      buildLocalReference(json, _base, _frag, i) {
         const id = typeof json.$id === 'string' ? json.$id : undefined;
-        const title = typeof json.title === 'string' ? json.title : undefined;
-        return id ?? title ?? `Schema${i}`;
+        return id ?? `Schema${i}`;
       },
     },
   });
@@ -58,9 +60,7 @@ async function bootstrap() {
     uiConfig: { docExpansion: 'list', deepLinking: false },
   });
 
-  // ⬇️ Регистрируем глобальный обработчик ошибок — обязательно ДО роутов
   await server.register(fastifySensible);
-
   await server.register(errorsPlugin);
   await server.register(authPlugin);
 
@@ -71,10 +71,7 @@ async function bootstrap() {
         tags: ['health'],
         summary: 'Health check',
         operationId: 'getHealth',
-        response: {
-          200: Type.Ref(HealthResponseSchema),
-          ...errorResponses, // 400/401/403/404/409/500 -> { $ref: 'ApiError#' }
-        },
+        response: { 200: Type.Ref(HealthResponseSchema), ...errorResponses },
       },
     },
     async () => ({ ok: true, ts: new Date().toISOString() }),
