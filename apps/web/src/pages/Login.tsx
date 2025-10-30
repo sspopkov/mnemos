@@ -43,11 +43,18 @@ const LoginPage = () => {
         const redirectTo = state?.from?.pathname ?? '/';
         navigate(redirectTo, { replace: true });
       },
+      onError: (err) => {
+        setError(getErrorMessage(err));
+      },
     },
   });
 
   const logoutMutation = useLogout({
     mutation: {
+      onError: (err) => {
+        // eslint-disable-next-line no-console
+        console.error('Ошибка при выходе из аккаунта', err);
+      },
       onSettled: () => {
         queryClient.clear();
       },
@@ -58,28 +65,21 @@ const LoginPage = () => {
     event.preventDefault();
     setError(null);
 
-    try {
-      await loginMutation.mutateAsync({ data: form });
-    } catch (err) {
-      setError(getErrorMessage(err));
-    }
+    loginMutation.mutate({ data: form });
   };
 
   const handleChange = (field: keyof LoginFormState) => (event: ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
   };
 
-  const handleLogout = async () => {
-    try {
-      await logoutMutation.mutateAsync();
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Ошибка при выходе из аккаунта', err);
-    } finally {
-      clearAuth();
-      setForm({ email: '', password: '' });
-      setError(null);
-    }
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSettled: () => {
+        clearAuth();
+        setForm({ email: '', password: '' });
+        setError(null);
+      },
+    });
   };
 
   if (!initialized) {

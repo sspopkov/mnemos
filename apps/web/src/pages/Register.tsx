@@ -40,11 +40,18 @@ const RegisterPage = () => {
         queryClient.clear();
         navigate('/', { replace: true });
       },
+      onError: (err) => {
+        setError(getErrorMessage(err));
+      },
     },
   });
 
   const logoutMutation = useLogout({
     mutation: {
+      onError: (err) => {
+        // eslint-disable-next-line no-console
+        console.error('Ошибка при выходе из аккаунта', err);
+      },
       onSettled: () => {
         queryClient.clear();
       },
@@ -60,11 +67,7 @@ const RegisterPage = () => {
       return;
     }
 
-    try {
-      await registerMutation.mutateAsync({ data: { email: form.email, password: form.password } });
-    } catch (err) {
-      setError(getErrorMessage(err));
-    }
+    registerMutation.mutate({ data: { email: form.email, password: form.password } });
   };
 
   const handleChange =
@@ -72,17 +75,14 @@ const RegisterPage = () => {
       setForm((prev) => ({ ...prev, [field]: event.target.value }));
     };
 
-  const handleLogout = async () => {
-    try {
-      await logoutMutation.mutateAsync();
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Ошибка при выходе из аккаунта', err);
-    } finally {
-      clearAuth();
-      setForm({ email: '', password: '', confirmPassword: '' });
-      setError(null);
-    }
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSettled: () => {
+        clearAuth();
+        setForm({ email: '', password: '', confirmPassword: '' });
+        setError(null);
+      },
+    });
   };
 
   const isSubmitDisabled =
