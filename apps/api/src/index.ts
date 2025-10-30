@@ -11,7 +11,7 @@ import errorsPlugin, { errorResponses } from './plugins/errors';
 import authPlugin from './plugins/auth';
 import { authRoutes } from './routes/auth';
 import { sandboxRoutes } from './routes/sandbox';
-import { registerRecordSchemas } from './schemas';
+import { registerRecordSchemas } from './schemas/register-records';
 import { recordsRoutes } from './routes/records.routes';
 
 const server = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
