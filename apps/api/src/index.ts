@@ -44,6 +44,13 @@ async function bootstrap() {
         },
       },
     },
+    refResolver: {
+      buildLocalReference(json, _baseUri, _fragment, i) {
+        const id = typeof json.$id === 'string' ? json.$id : undefined;
+        const title = typeof json.title === 'string' ? json.title : undefined;
+        return id ?? title ?? `Schema${i}`;
+      },
+    },
   });
 
   await server.register(fastifySwaggerUi, {
