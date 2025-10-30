@@ -27,8 +27,9 @@ import {
   useUpdateRecord,
   useDeleteRecord,
   getGetRecordsQueryKey,
-  type GetRecords200Item as ApiRecord,
-  type Def0 as ApiError,
+  type ApiError,
+  type Record,
+  type RecordList,
 } from '../api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
@@ -52,7 +53,7 @@ const RecordsPage = () => {
     isLoading,
     isFetching,
     error,
-  } = useGetRecords<ApiRecord[], ApiError>({
+  } = useGetRecords<RecordList, ApiError>({
     query: {
       queryKey: getGetRecordsQueryKey(),
       select: (res) => res.data,
@@ -114,7 +115,7 @@ const RecordsPage = () => {
 
   const openCreate = () => setEdit({ mode: 'create', data: { title: '', content: '' } });
 
-  const openEdit = (r: ApiRecord) =>
+  const openEdit = (r: Record) =>
     setEdit({ mode: 'edit', id: r.id, data: { title: r.title, content: r.content ?? '' } });
 
   const onSubmit = async () => {

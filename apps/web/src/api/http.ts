@@ -1,7 +1,7 @@
 import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 
 import { useAuthStore } from '../store/auth';
-import { type Def2, type Refresh200 } from './index.ts';
+import type { AuthResponse, AuthUser } from './index.ts';
 
 declare module 'axios' {
   interface AxiosRequestConfig {
@@ -17,7 +17,9 @@ let refreshPromise: Promise<void> | null = null;
 
 const performRefresh = async () => {
   try {
-    const response = await refreshClient.post<Def2, AxiosResponse<Refresh200>>('/api/auth/refresh');
+    const response = await refreshClient.post<AuthUser, AxiosResponse<AuthResponse>>(
+      '/api/auth/refresh',
+    );
     const { accessToken, user } = response.data;
     useAuthStore.getState().setAuth({ accessToken, user });
   } catch (error) {

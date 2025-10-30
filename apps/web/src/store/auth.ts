@@ -1,11 +1,5 @@
 import { create } from 'zustand';
-
-export type AuthUser = {
-  id: string;
-  email: string;
-  createdAt: string;
-  updatedAt: string;
-};
+import type { AuthUser } from '../api';
 
 type SetAuthPayload = {
   user: AuthUser;

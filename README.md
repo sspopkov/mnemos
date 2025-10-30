@@ -13,13 +13,13 @@ Mnemos — это монорепозиторий, объединяющий REST 
 
 ### Стек
 
-| Слой            | Технологии                                                                 |
-| --------------- | --------------------------------------------------------------------------- |
-| Язык            | TypeScript 5                                                               |
-| Build/Dev       | pnpm workspace, Turborepo, Vite, tsx                                       |
-| Backend         | Fastify 5, Prisma, PostgreSQL, @fastify/swagger, bcrypt, JWT               |
-| Frontend        | React 19, React Router, React Query, Material UI, Emotion, Zustand         |
-| Типы/инструменты| Orval, Prettier, ESLint, TypeScript project references                     |
+| Слой             | Технологии                                                         |
+| ---------------- | ------------------------------------------------------------------ |
+| Язык             | TypeScript 5                                                       |
+| Build/Dev        | pnpm workspace, Turborepo, Vite, tsx                               |
+| Backend          | Fastify 5, Prisma, PostgreSQL, @fastify/swagger, bcrypt, JWT       |
+| Frontend         | React 19, React Router, React Query, Material UI, Emotion, Zustand |
+| Типы/инструменты | Orval, Prettier, ESLint, TypeScript project references             |
 
 ## Структура репозитория
 
@@ -96,15 +96,15 @@ Swagger UI доступен по `http://localhost:4000/docs`, JSON-специф
 
 ## Сборка и проверка
 
-| Команда                         | Назначение                                |
-| ------------------------------- | ----------------------------------------- |
-| `pnpm build`                    | Сборка всех пакетов через Turborepo       |
-| `pnpm -F @mnemos/api build`     | Сборка Fastify-приложения                 |
-| `pnpm -F @mnemos/web build`     | Prod-сборка фронтенда                     |
-| `pnpm lint`                     | ESLint для всех пакетов                   |
-| `pnpm typecheck`                | Проверка типов TypeScript                 |
-| `pnpm format`                   | Проверка форматирования Prettier          |
-| `pnpm format:write`             | Автоисправление форматирования            |
+| Команда                     | Назначение                          |
+| --------------------------- | ----------------------------------- |
+| `pnpm build`                | Сборка всех пакетов через Turborepo |
+| `pnpm -F @mnemos/api build` | Сборка Fastify-приложения           |
+| `pnpm -F @mnemos/web build` | Prod-сборка фронтенда               |
+| `pnpm lint`                 | ESLint для всех пакетов             |
+| `pnpm typecheck`            | Проверка типов TypeScript           |
+| `pnpm format`               | Проверка форматирования Prettier    |
+| `pnpm format:write`         | Автоисправление форматирования      |
 
 ## Генерация типов по OpenAPI
 
@@ -143,4 +143,3 @@ pnpm -F @mnemos/types gen:api       # Orval генерирует типы и Rea
 - `deploy/compose.yml` предоставляет базовую схему развёртывания: сервис API и PostgreSQL с томом для данных.
 - Перед сборкой контейнера API выполните `pnpm -F @mnemos/api build` и соберите образ (например, `docker build -t mnemos-api apps/api`).
 - Для миграций в production используйте `pnpm -F @mnemos/api prisma:migrate:deploy` внутри контейнера.
-
