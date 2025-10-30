@@ -118,17 +118,25 @@ const RecordsPage = () => {
   const openEdit = (r: Record) =>
     setEdit({ mode: 'edit', id: r.id, data: { title: r.title, content: r.content ?? '' } });
 
-  const onSubmit = async () => {
+  const onSubmit = () => {
     if (!edit) return;
-    try {
-      if (edit.mode === 'create') {
-        await createMut.mutateAsync({ data: edit.data });
-      } else {
-        await updateMut.mutateAsync({ id: edit.id, data: edit.data });
-      }
-      setEdit(null);
-    } catch {
-      // уведомление показывается в обработчике onError мутации
+
+    const closeDialog = () => setEdit(null);
+
+    if (edit.mode === 'create') {
+      createMut.mutate(
+        { data: edit.data },
+        {
+          onSuccess: closeDialog,
+        },
+      );
+    } else {
+      updateMut.mutate(
+        { id: edit.id, data: edit.data },
+        {
+          onSuccess: closeDialog,
+        },
+      );
     }
   };
 
@@ -138,14 +146,15 @@ const RecordsPage = () => {
 
   const closeDeleteDialog = () => setDeleteId(null);
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     if (!deleteId) return;
-    try {
-      await deleteMut.mutateAsync({ id: deleteId });
-      setDeleteId(null);
-    } catch {
-      // уведомление показывается в обработчике onError мутации
-    }
+
+    deleteMut.mutate(
+      { id: deleteId },
+      {
+        onSuccess: () => setDeleteId(null),
+      },
+    );
   };
 
   return (
