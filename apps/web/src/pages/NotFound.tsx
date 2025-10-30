@@ -51,13 +51,7 @@ const NotFound = () => {
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ pt: 2 }}>
-            <Button
-              component={RouterLink}
-              to="/"
-              variant="contained"
-              color="primary"
-              size="large"
-            >
+            <Button component={RouterLink} to="/" variant="contained" color="primary" size="large">
               На главную
             </Button>
             <Button component="a" href="mailto:support@mnemos.app" size="large">

@@ -10,18 +10,27 @@ export const ErrorSchema = Type.Object(
     code: Type.Optional(Type.String()),
     details: Type.Optional(Type.Unknown()),
   },
-  { $id: 'ApiError', additionalProperties: false },
+  { $id: 'ApiError', title: 'ApiError', additionalProperties: false },
 );
 
 export type ApiError = Static<typeof ErrorSchema>;
 
+const errorResponse = (description: string) => ({
+  description,
+  content: {
+    'application/json': {
+      schema: Type.Ref(ErrorSchema),
+    },
+  },
+});
+
 export const errorResponses = {
-  400: { $ref: 'ApiError#' },
-  401: { $ref: 'ApiError#' },
-  403: { $ref: 'ApiError#' },
-  404: { $ref: 'ApiError#' },
-  409: { $ref: 'ApiError#' },
-  500: { $ref: 'ApiError#' },
+  400: errorResponse('Некорректные данные запроса'),
+  401: errorResponse('Требуется аутентификация'),
+  403: errorResponse('Доступ запрещён'),
+  404: errorResponse('Ресурс не найден'),
+  409: errorResponse('Конфликт данных'),
+  500: errorResponse('Внутренняя ошибка сервера'),
 } as const;
 
 export default fp(async function errorsPlugin(app: FastifyInstance) {

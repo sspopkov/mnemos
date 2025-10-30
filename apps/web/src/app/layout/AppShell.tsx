@@ -28,7 +28,7 @@ import type { PaletteMode } from '@mui/material';
 import { Link as RouterLink, Outlet, useLocation } from 'react-router-dom'; // ⬅️ добавили
 
 import { DRAWER_WIDTH } from '../../utils/layout';
-import type { AuthUser } from '../../store/auth';
+import type { AuthUser } from '../../api';
 
 export type NavigationItem = {
   label: string;

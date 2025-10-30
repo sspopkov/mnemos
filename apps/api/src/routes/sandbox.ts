@@ -7,10 +7,12 @@ const SandboxResponseSchema = Type.Object(
   {
     message: Type.String(),
   },
-  { additionalProperties: false },
+  { $id: 'SandboxResponse', title: 'SandboxResponse', additionalProperties: false },
 );
 
 export async function sandboxRoutes(app: FastifyInstance) {
+  app.addSchema(SandboxResponseSchema);
+
   if (process.env.NODE_ENV === 'production') {
     app.log.info('Sandbox routes are disabled in production mode');
     return;
@@ -23,7 +25,7 @@ export async function sandboxRoutes(app: FastifyInstance) {
         tags: ['sandbox'],
         summary: 'Trigger sandbox success notification',
         response: {
-          200: SandboxResponseSchema,
+          200: Type.Ref(SandboxResponseSchema),
           ...errorResponses,
         },
       },

@@ -3,12 +3,7 @@ import { Alert, Card, CardContent, Chip, LinearProgress, Stack, Typography } fro
 import type { Theme } from '@mui/material/styles';
 
 import { formatTimestamp } from '../utils/date';
-import {
-  useGetHealth,
-  getGetHealthQueryKey,
-  type GetHealth200,
-  type Def0 as ApiError,
-} from '../api';
+import { useGetHealth, getGetHealthQueryKey, type HealthResponse, type ApiError } from '../api';
 import { getErrorMessage } from '../utils/errors';
 import { useAuthStore, selectAuthUser } from '../store/auth';
 
@@ -18,7 +13,7 @@ const Home = () => {
     isLoading,
     isFetching,
     error,
-  } = useGetHealth<GetHealth200, ApiError>({
+  } = useGetHealth<HealthResponse, ApiError>({
     query: {
       queryKey: getGetHealthQueryKey(),
       select: (res) => res.data,
