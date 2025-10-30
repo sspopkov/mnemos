@@ -102,10 +102,7 @@ export const App = () => {
     const fetchSession = async () => {
       try {
         const response = await refresh();
-        const { accessToken, user } = response.data as {
-          accessToken: string;
-          user: { id: string; email: string; createdAt: string; updatedAt: string };
-        };
+        const { accessToken, user } = response.data;
         setAuth({ accessToken, user });
       } catch {
         clearAuth();
