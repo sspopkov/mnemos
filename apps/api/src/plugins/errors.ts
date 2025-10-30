@@ -10,7 +10,7 @@ export const ErrorSchema = Type.Object(
     code: Type.Optional(Type.String()),
     details: Type.Optional(Type.Unknown()),
   },
-  { $id: 'ApiError', additionalProperties: false },
+  { $id: 'ApiError', title: 'ApiError', additionalProperties: false },
 );
 
 export type ApiError = Static<typeof ErrorSchema>;
@@ -19,7 +19,7 @@ const errorResponse = (description: string) => ({
   description,
   content: {
     'application/json': {
-      schema: { $ref: 'ApiError#' },
+      schema: Type.Ref(ErrorSchema),
     },
   },
 });

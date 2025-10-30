@@ -20,8 +20,10 @@ const HealthResponseSchema = Type.Object(
     ok: Type.Boolean(),
     ts: Type.String({ format: 'date-time' }),
   },
-  { additionalProperties: false },
+  { $id: 'HealthResponse', title: 'HealthResponse', additionalProperties: false },
 );
+
+server.addSchema(HealthResponseSchema);
 
 async function bootstrap() {
   await server.register(fastifyCors, {
@@ -63,7 +65,7 @@ async function bootstrap() {
         summary: 'Health check',
         operationId: 'getHealth',
         response: {
-          200: HealthResponseSchema,
+          200: Type.Ref(HealthResponseSchema),
           ...errorResponses, // 400/401/403/404/409/500 -> { $ref: 'ApiError#' }
         },
       },

@@ -15,15 +15,15 @@ const UserSchema = Type.Object(
     createdAt: Type.String({ format: 'date-time' }),
     updatedAt: Type.String({ format: 'date-time' }),
   },
-  { $id: 'AuthUser', additionalProperties: false },
+  { $id: 'AuthUser', title: 'AuthUser', additionalProperties: false },
 );
 
 const AuthResponseSchema = Type.Object(
   {
     accessToken: Type.String({ minLength: 1 }),
-    user: UserSchema,
+    user: Type.Ref(UserSchema),
   },
-  { $id: 'AuthResponse', additionalProperties: false },
+  { $id: 'AuthResponse', title: 'AuthResponse', additionalProperties: false },
 );
 
 type AuthUser = Static<typeof UserSchema>;
@@ -35,7 +35,7 @@ const RegisterBodySchema = Type.Object(
     email: Type.String({ format: 'email' }),
     password: Type.String({ minLength: 8, description: 'Минимум 8 символов' }),
   },
-  { additionalProperties: false },
+  { $id: 'RegisterRequest', title: 'RegisterRequest', additionalProperties: false },
 );
 
 type RegisterBody = Static<typeof RegisterBodySchema>;
@@ -45,14 +45,14 @@ const LoginBodySchema = Type.Object(
     email: Type.String({ format: 'email' }),
     password: Type.String({ minLength: 1 }),
   },
-  { additionalProperties: false },
+  { $id: 'LoginRequest', title: 'LoginRequest', additionalProperties: false },
 );
 
 type LoginBody = Static<typeof LoginBodySchema>;
 
 const LogoutResponseSchema = Type.Object(
   { ok: Type.Literal(true) },
-  { additionalProperties: false },
+  { $id: 'LogoutResponse', title: 'LogoutResponse', additionalProperties: false },
 );
 
 type LogoutResponse = Static<typeof LogoutResponseSchema>;
@@ -182,6 +182,9 @@ const issueTokens = async (
 export async function authRoutes(app: FastifyInstance) {
   app.addSchema(UserSchema);
   app.addSchema(AuthResponseSchema);
+  app.addSchema(RegisterBodySchema);
+  app.addSchema(LoginBodySchema);
+  app.addSchema(LogoutResponseSchema);
 
   app.post<{ Body: RegisterBody; Reply: AuthResponse }>(
     '/api/auth/register',
@@ -190,9 +193,9 @@ export async function authRoutes(app: FastifyInstance) {
         tags: ['auth'],
         summary: 'Register user',
         operationId: 'register',
-        body: RegisterBodySchema,
+        body: Type.Ref(RegisterBodySchema),
         response: {
-          201: AuthResponseSchema,
+          201: Type.Ref(AuthResponseSchema),
           ...errorResponses,
         },
       },
@@ -220,9 +223,9 @@ export async function authRoutes(app: FastifyInstance) {
         tags: ['auth'],
         summary: 'Login user',
         operationId: 'login',
-        body: LoginBodySchema,
+        body: Type.Ref(LoginBodySchema),
         response: {
-          200: AuthResponseSchema,
+          200: Type.Ref(AuthResponseSchema),
           ...errorResponses,
         },
       },
@@ -251,7 +254,7 @@ export async function authRoutes(app: FastifyInstance) {
         summary: 'Refresh access token',
         operationId: 'refresh',
         response: {
-          200: AuthResponseSchema,
+          200: Type.Ref(AuthResponseSchema),
           ...errorResponses,
         },
       },
@@ -329,7 +332,7 @@ export async function authRoutes(app: FastifyInstance) {
         summary: 'Logout user',
         operationId: 'logout',
         response: {
-          200: LogoutResponseSchema,
+          200: Type.Ref(LogoutResponseSchema),
           ...errorResponses,
         },
       },
@@ -356,7 +359,7 @@ export async function authRoutes(app: FastifyInstance) {
         summary: 'Get current user',
         operationId: 'getCurrentUser',
         response: {
-          200: UserSchema,
+          200: Type.Ref(UserSchema),
           ...errorResponses,
         },
         security: [{ bearerAuth: [] }],

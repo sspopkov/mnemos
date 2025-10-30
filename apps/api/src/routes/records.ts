@@ -6,47 +6,54 @@ import { prisma } from '../prisma';
 import { errorResponses } from '../plugins/errors';
 
 // --- Schemas ---
-const RecordContent = Type.Union([Type.String(), Type.Null()]);
+const RecordContentSchema = Type.Union([Type.String(), Type.Null()], {
+  $id: 'RecordContent',
+  title: 'RecordContent',
+});
 
 const RecordSchema = Type.Object(
   {
     id: Type.String({ minLength: 1 }),
     title: Type.String(),
-    content: RecordContent,
+    content: Type.Ref(RecordContentSchema),
     createdAt: Type.String({ format: 'date-time' }),
     updatedAt: Type.String({ format: 'date-time' }),
   },
-  { additionalProperties: false },
+  { $id: 'Record', title: 'Record', additionalProperties: false },
 );
 
-const RecordListSchema = Type.Array(RecordSchema);
+const RecordListSchema = Type.Array(Type.Ref(RecordSchema), {
+  $id: 'RecordList',
+  title: 'RecordList',
+});
 
 const RecordParamsSchema = Type.Object(
   { id: Type.String({ minLength: 1 }) },
-  { additionalProperties: false },
+  { $id: 'RecordParams', title: 'RecordParams', additionalProperties: false },
 );
 
 const CreateRecordBodySchema = Type.Object(
   {
     title: Type.String({ minLength: 1 }),
-    content: Type.Optional(RecordContent),
+    content: Type.Optional(Type.Ref(RecordContentSchema)),
   },
-  { additionalProperties: false },
+  { $id: 'CreateRecordRequest', title: 'CreateRecordRequest', additionalProperties: false },
 );
 
 const UpdateRecordBodySchema = Type.Partial(
   Type.Object(
     {
       title: Type.String({ minLength: 1 }),
-      content: RecordContent,
+      content: Type.Ref(RecordContentSchema),
     },
     { additionalProperties: false },
   ),
+  { $id: 'UpdateRecordRequest', title: 'UpdateRecordRequest', additionalProperties: false },
 );
 
 const DeleteRecordResponseSchema = Type.Object(
   { ok: Type.Literal(true) },
-  { additionalProperties: false },
+  { $id: 'DeleteRecordResponse', title: 'DeleteRecordResponse', additionalProperties: false },
 );
 
 // --- Types ---
@@ -66,6 +73,14 @@ const toRecordEntity = (r: PrismaRecord): RecordEntity => ({
 });
 
 export async function recordsRoutes(app: FastifyInstance) {
+  app.addSchema(RecordContentSchema);
+  app.addSchema(RecordSchema);
+  app.addSchema(RecordListSchema);
+  app.addSchema(RecordParamsSchema);
+  app.addSchema(CreateRecordBodySchema);
+  app.addSchema(UpdateRecordBodySchema);
+  app.addSchema(DeleteRecordResponseSchema);
+
   // GET /api/records
   app.get<{ Reply: RecordEntity[] }>(
     '/api/records',
@@ -76,7 +91,7 @@ export async function recordsRoutes(app: FastifyInstance) {
         summary: 'List records',
         operationId: 'getRecords',
         response: {
-          200: RecordListSchema,
+          200: Type.Ref(RecordListSchema),
           ...errorResponses, // 400/401/403/404/409/500 -> { $ref: 'ApiError#' }
         },
         security: [{ bearerAuth: [] }],
@@ -100,9 +115,9 @@ export async function recordsRoutes(app: FastifyInstance) {
         tags: ['records'],
         summary: 'Create record',
         operationId: 'createRecord',
-        body: CreateRecordBodySchema,
+        body: Type.Ref(CreateRecordBodySchema),
         response: {
-          201: RecordSchema,
+          201: Type.Ref(RecordSchema),
           ...errorResponses,
         },
         security: [{ bearerAuth: [] }],
@@ -129,10 +144,10 @@ export async function recordsRoutes(app: FastifyInstance) {
         tags: ['records'],
         summary: 'Update record',
         operationId: 'updateRecord',
-        params: RecordParamsSchema,
-        body: UpdateRecordBodySchema,
+        params: Type.Ref(RecordParamsSchema),
+        body: Type.Ref(UpdateRecordBodySchema),
         response: {
-          200: RecordSchema,
+          200: Type.Ref(RecordSchema),
           ...errorResponses,
         },
         security: [{ bearerAuth: [] }],
@@ -167,9 +182,9 @@ export async function recordsRoutes(app: FastifyInstance) {
         tags: ['records'],
         summary: 'Delete record',
         operationId: 'deleteRecord',
-        params: RecordParamsSchema,
+        params: Type.Ref(RecordParamsSchema),
         response: {
-          200: DeleteRecordResponseSchema,
+          200: Type.Ref(DeleteRecordResponseSchema),
           ...errorResponses,
         },
         security: [{ bearerAuth: [] }],
