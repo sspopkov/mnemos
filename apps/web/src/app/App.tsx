@@ -49,6 +49,10 @@ const ProtectedLayout = ({
   const queryClient = useQueryClient();
   const logoutMutation = useLogout({
     mutation: {
+      onError: (error) => {
+        // eslint-disable-next-line no-console
+        console.error('Ошибка при выходе из аккаунта', error);
+      },
       onSettled: () => {
         queryClient.clear();
       },
@@ -59,16 +63,13 @@ const ProtectedLayout = ({
     return null;
   }
 
-  const handleLogout = async () => {
-    try {
-      await logoutMutation.mutateAsync();
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Ошибка при выходе из аккаунта', error);
-    } finally {
-      clearAuth();
-      navigate('/login', { replace: true });
-    }
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSettled: () => {
+        clearAuth();
+        navigate('/login', { replace: true });
+      },
+    });
   };
 
   return (
@@ -101,10 +102,7 @@ export const App = () => {
     const fetchSession = async () => {
       try {
         const response = await refresh();
-        const { accessToken, user } = response.data as {
-          accessToken: string;
-          user: { id: string; email: string; createdAt: string; updatedAt: string };
-        };
+        const { accessToken, user } = response.data;
         setAuth({ accessToken, user });
       } catch {
         clearAuth();
