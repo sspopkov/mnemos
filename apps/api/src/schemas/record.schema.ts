@@ -53,6 +53,16 @@ export const DeleteRecordResponseSchema = Type.Object(
   { $id: 'DeleteRecordResponse', additionalProperties: false },
 );
 
+export const recordSchemas = [
+  RecordContentSchema,
+  RecordSchema,
+  RecordListSchema,
+  RecordParamsSchema,
+  CreateRecordBodySchema,
+  UpdateRecordBodySchema,
+  DeleteRecordResponseSchema,
+] as const;
+
 export type RecordEntity = Static<typeof RecordSchema>;
 export type RecordParams = Static<typeof RecordParamsSchema>;
 export type CreateRecordBody = Static<typeof CreateRecordBodySchema>;

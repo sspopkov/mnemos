@@ -9,9 +9,8 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { env } from './env';
 import errorsPlugin, { errorResponses } from './plugins/errors';
 import authPlugin from './plugins/auth';
-import { authRoutes } from './routes/auth';
+import { authRoutes } from './routes/auth.routes';
 import { sandboxRoutes } from './routes/sandbox';
-import { registerRecordSchemas } from './schemas/register-records';
 import { recordsRoutes } from './routes/records.routes';
 
 const server = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
@@ -31,8 +30,6 @@ async function bootstrap() {
     origin: env.corsOrigin ?? true,
     credentials: true,
   });
-
-  await registerRecordSchemas(server);
 
   await server.register(fastifySwagger, {
     openapi: {
