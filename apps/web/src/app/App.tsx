@@ -22,6 +22,8 @@ import {
 } from '../store/preferences';
 import { useLogout, useRefresh } from '../api';
 
+let didBootstrapAuth = false;
+
 const navigation: NavigationItem[] = [
   { label: 'Главная', href: '/', description: 'Обзор состояния сервисов' },
   { label: 'Записи', href: '/records', description: 'CRUD по записям' },
@@ -106,8 +108,9 @@ export const App = () => {
   const { mutate: bootstrapSession, status: refreshStatus } = refreshSession;
 
   useEffect(() => {
-    if (initialized || refreshStatus !== 'idle') return;
+    if (initialized || refreshStatus !== 'idle' || didBootstrapAuth) return;
 
+    didBootstrapAuth = true;
     bootstrapSession();
   }, [initialized, refreshStatus, bootstrapSession]);
 
