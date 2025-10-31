@@ -6,7 +6,9 @@ export default defineConfig({
   plugins: [
     react(),
     checker({
-      typescript: true,
+      typescript: {
+        tsconfigPath: 'tsconfig.app.json', // <- не solution, а реальный проект
+      },
       eslint: {
         lintCommand: 'eslint "src/**/*.{ts,tsx,js,jsx}"',
         useFlatConfig: true,
