@@ -7,6 +7,7 @@ import {
   CreateRecordBodySchema,
   UpdateRecordBodySchema,
   DeleteRecordResponseSchema,
+  recordSchemas,
   type RecordEntity,
   type RecordParams,
   type CreateRecordBody,
@@ -22,6 +23,8 @@ import {
 } from '../controllers/records.controller';
 
 export async function recordsRoutes(app: FastifyInstance) {
+  recordSchemas.forEach((schema) => app.addSchema(schema));
+
   // GET /api/records
   app.get<{ Reply: RecordEntity[] }>(
     '/api/records',
