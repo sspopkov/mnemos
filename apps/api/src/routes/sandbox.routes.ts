@@ -2,23 +2,25 @@ import { Type } from '@sinclair/typebox';
 import type { FastifyInstance } from 'fastify';
 
 import { errorResponses } from '../plugins/errors';
-
-const SandboxResponseSchema = Type.Object(
-  {
-    message: Type.String(),
-  },
-  { $id: 'SandboxResponse', title: 'SandboxResponse', additionalProperties: false },
-);
+import {
+  SandboxResponseSchema,
+  sandboxSchemas,
+  type SandboxResponse,
+} from '../schemas/sandbox.schema';
+import {
+  triggerSandboxFailure,
+  triggerSandboxSuccess,
+} from '../controllers/sandbox.controller';
 
 export async function sandboxRoutes(app: FastifyInstance) {
-  app.addSchema(SandboxResponseSchema);
+  sandboxSchemas.forEach((schema) => app.addSchema(schema));
 
   if (process.env.NODE_ENV === 'production') {
     app.log.info('Sandbox routes are disabled in production mode');
     return;
   }
 
-  app.get(
+  app.get<{ Reply: SandboxResponse }>(
     '/api/sandbox/success',
     {
       schema: {
@@ -30,7 +32,7 @@ export async function sandboxRoutes(app: FastifyInstance) {
         },
       },
     },
-    async () => ({ message: 'Запрос выполнен успешно' }),
+    async () => triggerSandboxSuccess(),
   );
 
   app.get(
@@ -44,8 +46,6 @@ export async function sandboxRoutes(app: FastifyInstance) {
         },
       },
     },
-    async () => {
-      throw app.httpErrors.internalServerError('Серверная ошибка для проверки уведомлений');
-    },
+    async () => triggerSandboxFailure(app),
   );
 }

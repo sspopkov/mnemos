@@ -10,7 +10,7 @@ import { env } from './env';
 import errorsPlugin, { errorResponses } from './plugins/errors';
 import authPlugin from './plugins/auth';
 import { authRoutes } from './routes/auth.routes';
-import { sandboxRoutes } from './routes/sandbox';
+import { sandboxRoutes } from './routes/sandbox.routes';
 import { recordsRoutes } from './routes/records.routes';
 
 const server = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
