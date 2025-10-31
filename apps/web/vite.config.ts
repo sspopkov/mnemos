@@ -8,7 +8,8 @@ export default defineConfig({
     checker({
       typescript: true,
       eslint: {
-        lintCommand: 'pnpm exec eslint "./src/**/*.{ts,tsx,js,jsx}"',
+        lintCommand: 'pnpm exec eslint "apps/web/src/**/*.{ts,tsx,js,jsx}"',
+        useFlatConfig: true,
       },
     }),
   ],
