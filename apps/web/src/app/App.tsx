@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { BrowserRouter, Route, Routes, useNavigate } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import type { PaletteMode } from '@mui/material';
@@ -20,7 +20,7 @@ import {
   selectToggleThemeMode,
   useUserPreferencesStore,
 } from '../store/preferences';
-import { refresh, useLogout } from '../api';
+import { useLogout, useRefresh } from '../api';
 
 const navigation: NavigationItem[] = [
   { label: 'Главная', href: '/', description: 'Обзор состояния сервисов' },
@@ -92,27 +92,24 @@ export const App = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const initialized = useAuthStore(selectAuthInitialized);
-  const bootstrapping = useRef(false);
-
-  useEffect(() => {
-    if (initialized || bootstrapping.current) return;
-
-    bootstrapping.current = true;
-
-    const fetchSession = async () => {
-      try {
-        const response = await refresh();
+  const refreshSession = useRefresh({
+    mutation: {
+      onSuccess: (response) => {
         const { accessToken, user } = response.data;
         setAuth({ accessToken, user });
-      } catch {
+      },
+      onError: () => {
         clearAuth();
-      } finally {
-        bootstrapping.current = false;
-      }
-    };
+      },
+    },
+  });
+  const { mutate: bootstrapSession, status: refreshStatus } = refreshSession;
 
-    void fetchSession();
-  }, [initialized, setAuth, clearAuth]);
+  useEffect(() => {
+    if (initialized || refreshStatus !== 'idle') return;
+
+    bootstrapSession();
+  }, [initialized, refreshStatus, bootstrapSession]);
 
   if (!preferencesHydrated) {
     return null;
