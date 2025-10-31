@@ -3,27 +3,17 @@ import fastifyCors from '@fastify/cors';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
 import fastifySensible from '@fastify/sensible';
-import { Type } from '@sinclair/typebox';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 import { env } from './env';
-import errorsPlugin, { errorResponses } from './plugins/errors';
+import errorsPlugin from './plugins/errors';
 import authPlugin from './plugins/auth';
 import { authRoutes } from './routes/auth.routes';
 import { sandboxRoutes } from './routes/sandbox.routes';
 import { recordsRoutes } from './routes/records.routes';
+import { healthRoutes } from './routes/health.routes';
 
 const server = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
-
-const HealthResponseSchema = Type.Object(
-  {
-    ok: Type.Boolean(),
-    ts: Type.String({ format: 'date-time' }),
-  },
-  { $id: 'HealthResponse', title: 'HealthResponse', additionalProperties: false },
-);
-
-server.addSchema(HealthResponseSchema);
 
 async function bootstrap() {
   await server.register(fastifyCors, {
@@ -60,20 +50,7 @@ async function bootstrap() {
   await server.register(fastifySensible);
   await server.register(errorsPlugin);
   await server.register(authPlugin);
-
-  server.get(
-    '/api/health',
-    {
-      schema: {
-        tags: ['health'],
-        summary: 'Health check',
-        operationId: 'getHealth',
-        response: { 200: Type.Ref(HealthResponseSchema), ...errorResponses },
-      },
-    },
-    async () => ({ ok: true, ts: new Date().toISOString() }),
-  );
-
+  await server.register(healthRoutes);
   await server.register(authRoutes);
   await server.register(recordsRoutes);
   await server.register(sandboxRoutes);
