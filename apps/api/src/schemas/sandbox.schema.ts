@@ -10,7 +10,11 @@ export const SandboxResponseSchema = Type.Object(
 export const SandboxDelayQuerySchema = Type.Object(
   {
     delayMs: Type.Optional(
-      Type.Integer({ minimum: 0, maximum: 60000, description: 'Искусственная задержка в миллисекундах' }),
+      Type.Integer({
+        minimum: 0,
+        maximum: 60000,
+        description: 'Искусственная задержка в миллисекундах',
+      }),
     ),
   },
   { $id: 'SandboxDelayQuery', title: 'SandboxDelayQuery', additionalProperties: false },

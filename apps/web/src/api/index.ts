@@ -4,10 +4,7 @@
  * Mnemos API
  * OpenAPI spec version: 1.0.0
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
   MutationFunction,
   QueryFunction,
@@ -15,7 +12,7 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
+  UseQueryResult,
 } from '@tanstack/react-query';
 
 import { httpClient } from './http';
@@ -111,871 +108,852 @@ export interface SandboxDelayQuery {
 }
 
 export type GetApiSandboxDelayedParams = {
-/**
- * Искусственная задержка в миллисекундах
- * @minimum 0
- * @maximum 60000
- */
-delayMs?: number;
+  /**
+   * Искусственная задержка в миллисекундах
+   * @minimum 0
+   * @maximum 60000
+   */
+  delayMs?: number;
 };
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
-      type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
-
-
-
+type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
 /**
  * @summary Health check
  */
-export const getHealth = (
-    
- signal?: AbortSignal
-) => {
-      
-      
-      return httpClient<HealthResponse>(
-      {url: `/api/health`, method: 'GET', signal
-    },
-      );
-    }
-  
-
-
+export const getHealth = (signal?: AbortSignal) => {
+  return httpClient<HealthResponse>({ url: `/api/health`, method: 'GET', signal });
+};
 
 export const getGetHealthQueryKey = () => {
-    return [
-    `/api/health`
-    ] as const;
-    }
+  return [`/api/health`] as const;
+};
 
-    
-export const getGetHealthQueryOptions = <TData = Awaited<ReturnType<typeof getHealth>>, TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>, }
-) => {
+export const getGetHealthQueryOptions = <
+  TData = Awaited<ReturnType<typeof getHealth>>,
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>;
+}) => {
+  const { query: queryOptions } = options ?? {};
 
-const {query: queryOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetHealthQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetHealthQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getHealth>>> = ({ signal }) =>
+    getHealth(signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getHealth>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getHealth>>> = ({ signal }) => getHealth(signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type GetHealthQueryResult = NonNullable<Awaited<ReturnType<typeof getHealth>>>
-export type GetHealthQueryError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError
-
+export type GetHealthQueryResult = NonNullable<Awaited<ReturnType<typeof getHealth>>>;
+export type GetHealthQueryError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError;
 
 /**
  * @summary Health check
  */
 
-export function useGetHealth<TData = Awaited<ReturnType<typeof getHealth>>, TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>, }
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetHealth<
+  TData = Awaited<ReturnType<typeof getHealth>>,
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetHealthQueryOptions(options);
 
-  const queryOptions = getGetHealthQueryOptions(options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
 
+/**
+ * @summary Register user
+ */
+export const register = (registerRequest: RegisterRequest, signal?: AbortSignal) => {
+  return httpClient<AuthResponse>({
+    url: `/api/auth/register`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: registerRequest,
+    signal,
+  });
+};
 
+export const getRegisterMutationOptions = <
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof register>>,
+    TError,
+    { data: RegisterRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof register>>,
+  TError,
+  { data: RegisterRequest },
+  TContext
+> => {
+  const mutationKey = ['register'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
 
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof register>>,
+    { data: RegisterRequest }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return register(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RegisterMutationResult = NonNullable<Awaited<ReturnType<typeof register>>>;
+export type RegisterMutationBody = RegisterRequest;
+export type RegisterMutationError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError;
 
 /**
  * @summary Register user
  */
-export const register = (
-    registerRequest: RegisterRequest,
- signal?: AbortSignal
-) => {
-      
-      
-      return httpClient<AuthResponse>(
-      {url: `/api/auth/register`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: registerRequest, signal
-    },
-      );
-    }
-  
+export const useRegister = <
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof register>>,
+    TError,
+    { data: RegisterRequest },
+    TContext
+  >;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof register>>,
+  TError,
+  { data: RegisterRequest },
+  TContext
+> => {
+  const mutationOptions = getRegisterMutationOptions(options);
 
+  return useMutation(mutationOptions);
+};
 
-export const getRegisterMutationOptions = <TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext> => {
-
-const mutationKey = ['register'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof register>>, {data: RegisterRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  register(data,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type RegisterMutationResult = NonNullable<Awaited<ReturnType<typeof register>>>
-    export type RegisterMutationBody = RegisterRequest
-    export type RegisterMutationError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError
-
-    /**
- * @summary Register user
- */
-export const useRegister = <TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterRequest}, TContext>, }
- ): UseMutationResult<
-        Awaited<ReturnType<typeof register>>,
-        TError,
-        {data: RegisterRequest},
-        TContext
-      > => {
-
-      const mutationOptions = getRegisterMutationOptions(options);
-
-      return useMutation(mutationOptions);
-    }
-    
 /**
  * @summary Login user
  */
-export const login = (
-    loginRequest: LoginRequest,
- signal?: AbortSignal
-) => {
-      
-      
-      return httpClient<AuthResponse>(
-      {url: `/api/auth/login`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: loginRequest, signal
-    },
-      );
-    }
-  
+export const login = (loginRequest: LoginRequest, signal?: AbortSignal) => {
+  return httpClient<AuthResponse>({
+    url: `/api/auth/login`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: loginRequest,
+    signal,
+  });
+};
 
+export const getLoginMutationOptions = <
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof login>>,
+    TError,
+    { data: LoginRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof login>>,
+  TError,
+  { data: LoginRequest },
+  TContext
+> => {
+  const mutationKey = ['login'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
 
-export const getLoginMutationOptions = <TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext> => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof login>>, { data: LoginRequest }> = (
+    props,
+  ) => {
+    const { data } = props ?? {};
 
-const mutationKey = ['login'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
+    return login(data);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type LoginMutationResult = NonNullable<Awaited<ReturnType<typeof login>>>;
+export type LoginMutationBody = LoginRequest;
+export type LoginMutationError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof login>>, {data: LoginRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  login(data,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type LoginMutationResult = NonNullable<Awaited<ReturnType<typeof login>>>
-    export type LoginMutationBody = LoginRequest
-    export type LoginMutationError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError
-
-    /**
+/**
  * @summary Login user
  */
-export const useLogin = <TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: LoginRequest}, TContext>, }
- ): UseMutationResult<
-        Awaited<ReturnType<typeof login>>,
-        TError,
-        {data: LoginRequest},
-        TContext
-      > => {
+export const useLogin = <
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof login>>,
+    TError,
+    { data: LoginRequest },
+    TContext
+  >;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof login>>,
+  TError,
+  { data: LoginRequest },
+  TContext
+> => {
+  const mutationOptions = getLoginMutationOptions(options);
 
-      const mutationOptions = getLoginMutationOptions(options);
+  return useMutation(mutationOptions);
+};
 
-      return useMutation(mutationOptions);
-    }
-    
 /**
  * @summary Refresh access token
  */
-export const refresh = (
-    
- signal?: AbortSignal
-) => {
-      
-      
-      return httpClient<AuthResponse>(
-      {url: `/api/auth/refresh`, method: 'POST', signal
-    },
-      );
-    }
-  
+export const refresh = (signal?: AbortSignal) => {
+  return httpClient<AuthResponse>({ url: `/api/auth/refresh`, method: 'POST', signal });
+};
 
+export const getRefreshMutationOptions = <
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError, void, TContext>;
+}): UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError, void, TContext> => {
+  const mutationKey = ['refresh'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
 
-export const getRefreshMutationOptions = <TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError,void, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError,void, TContext> => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof refresh>>, void> = () => {
+    return refresh();
+  };
 
-const mutationKey = ['refresh'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
+  return { mutationFn, ...mutationOptions };
+};
 
-      
+export type RefreshMutationResult = NonNullable<Awaited<ReturnType<typeof refresh>>>;
 
+export type RefreshMutationError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof refresh>>, void> = () => {
-          
-
-          return  refresh()
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type RefreshMutationResult = NonNullable<Awaited<ReturnType<typeof refresh>>>
-    
-    export type RefreshMutationError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError
-
-    /**
+/**
  * @summary Refresh access token
  */
-export const useRefresh = <TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError,void, TContext>, }
- ): UseMutationResult<
-        Awaited<ReturnType<typeof refresh>>,
-        TError,
-        void,
-        TContext
-      > => {
+export const useRefresh = <
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof refresh>>, TError, void, TContext>;
+}): UseMutationResult<Awaited<ReturnType<typeof refresh>>, TError, void, TContext> => {
+  const mutationOptions = getRefreshMutationOptions(options);
 
-      const mutationOptions = getRefreshMutationOptions(options);
+  return useMutation(mutationOptions);
+};
 
-      return useMutation(mutationOptions);
-    }
-    
 /**
  * @summary Logout user
  */
-export const logout = (
-    
- signal?: AbortSignal
-) => {
-      
-      
-      return httpClient<LogoutResponse>(
-      {url: `/api/auth/logout`, method: 'POST', signal
-    },
-      );
-    }
-  
+export const logout = (signal?: AbortSignal) => {
+  return httpClient<LogoutResponse>({ url: `/api/auth/logout`, method: 'POST', signal });
+};
 
+export const getLogoutMutationOptions = <
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError, void, TContext>;
+}): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError, void, TContext> => {
+  const mutationKey = ['logout'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
 
-export const getLogoutMutationOptions = <TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext> => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof logout>>, void> = () => {
+    return logout();
+  };
 
-const mutationKey = ['logout'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
+  return { mutationFn, ...mutationOptions };
+};
 
-      
+export type LogoutMutationResult = NonNullable<Awaited<ReturnType<typeof logout>>>;
 
+export type LogoutMutationError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof logout>>, void> = () => {
-          
-
-          return  logout()
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type LogoutMutationResult = NonNullable<Awaited<ReturnType<typeof logout>>>
-    
-    export type LogoutMutationError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError
-
-    /**
+/**
  * @summary Logout user
  */
-export const useLogout = <TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, }
- ): UseMutationResult<
-        Awaited<ReturnType<typeof logout>>,
-        TError,
-        void,
-        TContext
-      > => {
+export const useLogout = <
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError, void, TContext>;
+}): UseMutationResult<Awaited<ReturnType<typeof logout>>, TError, void, TContext> => {
+  const mutationOptions = getLogoutMutationOptions(options);
 
-      const mutationOptions = getLogoutMutationOptions(options);
+  return useMutation(mutationOptions);
+};
 
-      return useMutation(mutationOptions);
-    }
-    
 /**
  * @summary Get current user
  */
-export const getCurrentUser = (
-    
- signal?: AbortSignal
-) => {
-      
-      
-      return httpClient<AuthUser>(
-      {url: `/api/auth/me`, method: 'GET', signal
-    },
-      );
-    }
-  
-
-
+export const getCurrentUser = (signal?: AbortSignal) => {
+  return httpClient<AuthUser>({ url: `/api/auth/me`, method: 'GET', signal });
+};
 
 export const getGetCurrentUserQueryKey = () => {
-    return [
-    `/api/auth/me`
-    ] as const;
-    }
+  return [`/api/auth/me`] as const;
+};
 
-    
-export const getGetCurrentUserQueryOptions = <TData = Awaited<ReturnType<typeof getCurrentUser>>, TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCurrentUser>>, TError, TData>, }
-) => {
+export const getGetCurrentUserQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCurrentUser>>,
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getCurrentUser>>, TError, TData>;
+}) => {
+  const { query: queryOptions } = options ?? {};
 
-const {query: queryOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetCurrentUserQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetCurrentUserQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCurrentUser>>> = ({ signal }) =>
+    getCurrentUser(signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCurrentUser>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCurrentUser>>> = ({ signal }) => getCurrentUser(signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCurrentUser>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type GetCurrentUserQueryResult = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>
-export type GetCurrentUserQueryError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError
-
+export type GetCurrentUserQueryResult = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
+export type GetCurrentUserQueryError =
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError;
 
 /**
  * @summary Get current user
  */
 
-export function useGetCurrentUser<TData = Awaited<ReturnType<typeof getCurrentUser>>, TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCurrentUser>>, TError, TData>, }
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetCurrentUser<
+  TData = Awaited<ReturnType<typeof getCurrentUser>>,
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getCurrentUser>>, TError, TData>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCurrentUserQueryOptions(options);
 
-  const queryOptions = getGetCurrentUserQueryOptions(options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
 
-
-
-
 /**
  * @summary List records
  */
-export const getRecords = (
-    
- signal?: AbortSignal
-) => {
-      
-      
-      return httpClient<RecordList>(
-      {url: `/api/records`, method: 'GET', signal
-    },
-      );
-    }
-  
-
-
+export const getRecords = (signal?: AbortSignal) => {
+  return httpClient<RecordList>({ url: `/api/records`, method: 'GET', signal });
+};
 
 export const getGetRecordsQueryKey = () => {
-    return [
-    `/api/records`
-    ] as const;
-    }
+  return [`/api/records`] as const;
+};
 
-    
-export const getGetRecordsQueryOptions = <TData = Awaited<ReturnType<typeof getRecords>>, TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRecords>>, TError, TData>, }
-) => {
+export const getGetRecordsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRecords>>,
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getRecords>>, TError, TData>;
+}) => {
+  const { query: queryOptions } = options ?? {};
 
-const {query: queryOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetRecordsQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetRecordsQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecords>>> = ({ signal }) =>
+    getRecords(signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getRecords>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecords>>> = ({ signal }) => getRecords(signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRecords>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type GetRecordsQueryResult = NonNullable<Awaited<ReturnType<typeof getRecords>>>
-export type GetRecordsQueryError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError
-
+export type GetRecordsQueryResult = NonNullable<Awaited<ReturnType<typeof getRecords>>>;
+export type GetRecordsQueryError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError;
 
 /**
  * @summary List records
  */
 
-export function useGetRecords<TData = Awaited<ReturnType<typeof getRecords>>, TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRecords>>, TError, TData>, }
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetRecords<
+  TData = Awaited<ReturnType<typeof getRecords>>,
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getRecords>>, TError, TData>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetRecordsQueryOptions(options);
 
-  const queryOptions = getGetRecordsQueryOptions(options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
 
+/**
+ * @summary Create record
+ */
+export const createRecord = (createRecordRequest: CreateRecordRequest, signal?: AbortSignal) => {
+  return httpClient<Record>({
+    url: `/api/records`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: createRecordRequest,
+    signal,
+  });
+};
 
+export const getCreateRecordMutationOptions = <
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createRecord>>,
+    TError,
+    { data: CreateRecordRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createRecord>>,
+  TError,
+  { data: CreateRecordRequest },
+  TContext
+> => {
+  const mutationKey = ['createRecord'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
 
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createRecord>>,
+    { data: CreateRecordRequest }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createRecord(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateRecordMutationResult = NonNullable<Awaited<ReturnType<typeof createRecord>>>;
+export type CreateRecordMutationBody = CreateRecordRequest;
+export type CreateRecordMutationError =
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError;
 
 /**
  * @summary Create record
  */
-export const createRecord = (
-    createRecordRequest: CreateRecordRequest,
- signal?: AbortSignal
-) => {
-      
-      
-      return httpClient<Record>(
-      {url: `/api/records`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createRecordRequest, signal
-    },
-      );
-    }
-  
+export const useCreateRecord = <
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createRecord>>,
+    TError,
+    { data: CreateRecordRequest },
+    TContext
+  >;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createRecord>>,
+  TError,
+  { data: CreateRecordRequest },
+  TContext
+> => {
+  const mutationOptions = getCreateRecordMutationOptions(options);
 
+  return useMutation(mutationOptions);
+};
 
-export const getCreateRecordMutationOptions = <TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRecord>>, TError,{data: CreateRecordRequest}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof createRecord>>, TError,{data: CreateRecordRequest}, TContext> => {
-
-const mutationKey = ['createRecord'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRecord>>, {data: CreateRecordRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  createRecord(data,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateRecordMutationResult = NonNullable<Awaited<ReturnType<typeof createRecord>>>
-    export type CreateRecordMutationBody = CreateRecordRequest
-    export type CreateRecordMutationError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError
-
-    /**
- * @summary Create record
- */
-export const useCreateRecord = <TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRecord>>, TError,{data: CreateRecordRequest}, TContext>, }
- ): UseMutationResult<
-        Awaited<ReturnType<typeof createRecord>>,
-        TError,
-        {data: CreateRecordRequest},
-        TContext
-      > => {
-
-      const mutationOptions = getCreateRecordMutationOptions(options);
-
-      return useMutation(mutationOptions);
-    }
-    
 /**
  * @summary Update record
  */
-export const updateRecord = (
-    id: string,
-    updateRecordRequest: UpdateRecordRequest,
- ) => {
-      
-      
-      return httpClient<Record>(
-      {url: `/api/records/${id}`, method: 'PUT',
-      headers: {'Content-Type': 'application/json', },
-      data: updateRecordRequest
-    },
-      );
-    }
-  
+export const updateRecord = (id: string, updateRecordRequest: UpdateRecordRequest) => {
+  return httpClient<Record>({
+    url: `/api/records/${id}`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: updateRecordRequest,
+  });
+};
 
+export const getUpdateRecordMutationOptions = <
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateRecord>>,
+    TError,
+    { id: string; data: UpdateRecordRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateRecord>>,
+  TError,
+  { id: string; data: UpdateRecordRequest },
+  TContext
+> => {
+  const mutationKey = ['updateRecord'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
 
-export const getUpdateRecordMutationOptions = <TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRecord>>, TError,{id: string;data: UpdateRecordRequest}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof updateRecord>>, TError,{id: string;data: UpdateRecordRequest}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateRecord>>,
+    { id: string; data: UpdateRecordRequest }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-const mutationKey = ['updateRecord'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
+    return updateRecord(id, data);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type UpdateRecordMutationResult = NonNullable<Awaited<ReturnType<typeof updateRecord>>>;
+export type UpdateRecordMutationBody = UpdateRecordRequest;
+export type UpdateRecordMutationError =
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateRecord>>, {id: string;data: UpdateRecordRequest}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  updateRecord(id,data,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdateRecordMutationResult = NonNullable<Awaited<ReturnType<typeof updateRecord>>>
-    export type UpdateRecordMutationBody = UpdateRecordRequest
-    export type UpdateRecordMutationError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError
-
-    /**
+/**
  * @summary Update record
  */
-export const useUpdateRecord = <TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRecord>>, TError,{id: string;data: UpdateRecordRequest}, TContext>, }
- ): UseMutationResult<
-        Awaited<ReturnType<typeof updateRecord>>,
-        TError,
-        {id: string;data: UpdateRecordRequest},
-        TContext
-      > => {
+export const useUpdateRecord = <
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateRecord>>,
+    TError,
+    { id: string; data: UpdateRecordRequest },
+    TContext
+  >;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateRecord>>,
+  TError,
+  { id: string; data: UpdateRecordRequest },
+  TContext
+> => {
+  const mutationOptions = getUpdateRecordMutationOptions(options);
 
-      const mutationOptions = getUpdateRecordMutationOptions(options);
+  return useMutation(mutationOptions);
+};
 
-      return useMutation(mutationOptions);
-    }
-    
 /**
  * @summary Delete record
  */
-export const deleteRecord = (
-    id: string,
- ) => {
-      
-      
-      return httpClient<DeleteRecordResponse>(
-      {url: `/api/records/${id}`, method: 'DELETE'
-    },
-      );
-    }
-  
+export const deleteRecord = (id: string) => {
+  return httpClient<DeleteRecordResponse>({ url: `/api/records/${id}`, method: 'DELETE' });
+};
 
+export const getDeleteRecordMutationOptions = <
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteRecord>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteRecord>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ['deleteRecord'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
 
-export const getDeleteRecordMutationOptions = <TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRecord>>, TError,{id: string}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof deleteRecord>>, TError,{id: string}, TContext> => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteRecord>>, { id: string }> = (
+    props,
+  ) => {
+    const { id } = props ?? {};
 
-const mutationKey = ['deleteRecord'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
+    return deleteRecord(id);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type DeleteRecordMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRecord>>>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteRecord>>, {id: string}> = (props) => {
-          const {id} = props ?? {};
+export type DeleteRecordMutationError =
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError;
 
-          return  deleteRecord(id,)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DeleteRecordMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRecord>>>
-    
-    export type DeleteRecordMutationError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError
-
-    /**
+/**
  * @summary Delete record
  */
-export const useDeleteRecord = <TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRecord>>, TError,{id: string}, TContext>, }
- ): UseMutationResult<
-        Awaited<ReturnType<typeof deleteRecord>>,
-        TError,
-        {id: string},
-        TContext
-      > => {
+export const useDeleteRecord = <
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteRecord>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteRecord>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationOptions = getDeleteRecordMutationOptions(options);
 
-      const mutationOptions = getDeleteRecordMutationOptions(options);
+  return useMutation(mutationOptions);
+};
 
-      return useMutation(mutationOptions);
-    }
-    
 /**
  * @summary Trigger sandbox success notification
  */
-export const getApiSandboxSuccess = (
-    
- signal?: AbortSignal
-) => {
-      
-      
-      return httpClient<SandboxResponse>(
-      {url: `/api/sandbox/success`, method: 'GET', signal
-    },
-      );
-    }
-  
-
-
+export const getApiSandboxSuccess = (signal?: AbortSignal) => {
+  return httpClient<SandboxResponse>({ url: `/api/sandbox/success`, method: 'GET', signal });
+};
 
 export const getGetApiSandboxSuccessQueryKey = () => {
-    return [
-    `/api/sandbox/success`
-    ] as const;
-    }
+  return [`/api/sandbox/success`] as const;
+};
 
-    
-export const getGetApiSandboxSuccessQueryOptions = <TData = Awaited<ReturnType<typeof getApiSandboxSuccess>>, TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxSuccess>>, TError, TData>, }
-) => {
+export const getGetApiSandboxSuccessQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiSandboxSuccess>>,
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxSuccess>>, TError, TData>;
+}) => {
+  const { query: queryOptions } = options ?? {};
 
-const {query: queryOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiSandboxSuccessQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiSandboxSuccessQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiSandboxSuccess>>> = ({ signal }) =>
+    getApiSandboxSuccess(signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiSandboxSuccess>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiSandboxSuccess>>> = ({ signal }) => getApiSandboxSuccess(signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxSuccess>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type GetApiSandboxSuccessQueryResult = NonNullable<Awaited<ReturnType<typeof getApiSandboxSuccess>>>
-export type GetApiSandboxSuccessQueryError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError
-
+export type GetApiSandboxSuccessQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiSandboxSuccess>>
+>;
+export type GetApiSandboxSuccessQueryError =
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError;
 
 /**
  * @summary Trigger sandbox success notification
  */
 
-export function useGetApiSandboxSuccess<TData = Awaited<ReturnType<typeof getApiSandboxSuccess>>, TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxSuccess>>, TError, TData>, }
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetApiSandboxSuccess<
+  TData = Awaited<ReturnType<typeof getApiSandboxSuccess>>,
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxSuccess>>, TError, TData>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetApiSandboxSuccessQueryOptions(options);
 
-  const queryOptions = getGetApiSandboxSuccessQueryOptions(options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
 
-
-
-
 /**
  * @summary Trigger sandbox failure notification
  */
-export const getApiSandboxFailure = (
-    
- signal?: AbortSignal
-) => {
-      
-      
-      return httpClient<unknown>(
-      {url: `/api/sandbox/failure`, method: 'GET', signal
-    },
-      );
-    }
-  
-
-
+export const getApiSandboxFailure = (signal?: AbortSignal) => {
+  return httpClient<unknown>({ url: `/api/sandbox/failure`, method: 'GET', signal });
+};
 
 export const getGetApiSandboxFailureQueryKey = () => {
-    return [
-    `/api/sandbox/failure`
-    ] as const;
-    }
+  return [`/api/sandbox/failure`] as const;
+};
 
-    
-export const getGetApiSandboxFailureQueryOptions = <TData = Awaited<ReturnType<typeof getApiSandboxFailure>>, TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxFailure>>, TError, TData>, }
-) => {
+export const getGetApiSandboxFailureQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiSandboxFailure>>,
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxFailure>>, TError, TData>;
+}) => {
+  const { query: queryOptions } = options ?? {};
 
-const {query: queryOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiSandboxFailureQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiSandboxFailureQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiSandboxFailure>>> = ({ signal }) =>
+    getApiSandboxFailure(signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiSandboxFailure>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiSandboxFailure>>> = ({ signal }) => getApiSandboxFailure(signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxFailure>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type GetApiSandboxFailureQueryResult = NonNullable<Awaited<ReturnType<typeof getApiSandboxFailure>>>
-export type GetApiSandboxFailureQueryError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError
-
+export type GetApiSandboxFailureQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiSandboxFailure>>
+>;
+export type GetApiSandboxFailureQueryError =
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError;
 
 /**
  * @summary Trigger sandbox failure notification
  */
 
-export function useGetApiSandboxFailure<TData = Awaited<ReturnType<typeof getApiSandboxFailure>>, TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxFailure>>, TError, TData>, }
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetApiSandboxFailure<
+  TData = Awaited<ReturnType<typeof getApiSandboxFailure>>,
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxFailure>>, TError, TData>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetApiSandboxFailureQueryOptions(options);
 
-  const queryOptions = getGetApiSandboxFailureQueryOptions(options)
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
 
+/**
+ * @summary Trigger sandbox delayed notification
+ */
+export const getApiSandboxDelayed = (params?: GetApiSandboxDelayedParams, signal?: AbortSignal) => {
+  return httpClient<SandboxResponse>({
+    url: `/api/sandbox/delayed`,
+    method: 'GET',
+    params,
+    signal,
+  });
+};
 
+export const getGetApiSandboxDelayedQueryKey = (params?: GetApiSandboxDelayedParams) => {
+  return [`/api/sandbox/delayed`, ...(params ? [params] : [])] as const;
+};
 
+export const getGetApiSandboxDelayedQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiSandboxDelayed>>,
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+>(
+  params?: GetApiSandboxDelayedParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxDelayed>>, TError, TData>;
+  },
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetApiSandboxDelayedQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiSandboxDelayed>>> = ({ signal }) =>
+    getApiSandboxDelayed(params, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiSandboxDelayed>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetApiSandboxDelayedQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiSandboxDelayed>>
+>;
+export type GetApiSandboxDelayedQueryError =
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError;
 
 /**
  * @summary Trigger sandbox delayed notification
  */
-export const getApiSandboxDelayed = (
-    params?: GetApiSandboxDelayedParams,
- signal?: AbortSignal
-) => {
-      
-      
-      return httpClient<SandboxResponse>(
-      {url: `/api/sandbox/delayed`, method: 'GET',
-        params, signal
-    },
-      );
-    }
-  
 
+export function useGetApiSandboxDelayed<
+  TData = Awaited<ReturnType<typeof getApiSandboxDelayed>>,
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+>(
+  params?: GetApiSandboxDelayedParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxDelayed>>, TError, TData>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetApiSandboxDelayedQueryOptions(params, options);
 
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
-export const getGetApiSandboxDelayedQueryKey = (params?: GetApiSandboxDelayedParams,) => {
-    return [
-    `/api/sandbox/delayed`, ...(params ? [params]: [])
-    ] as const;
-    }
-
-    
-export const getGetApiSandboxDelayedQueryOptions = <TData = Awaited<ReturnType<typeof getApiSandboxDelayed>>, TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError>(params?: GetApiSandboxDelayedParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxDelayed>>, TError, TData>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetApiSandboxDelayedQueryKey(params);
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiSandboxDelayed>>> = ({ signal }) => getApiSandboxDelayed(params, signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxDelayed>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type GetApiSandboxDelayedQueryResult = NonNullable<Awaited<ReturnType<typeof getApiSandboxDelayed>>>
-export type GetApiSandboxDelayedQueryError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError
-
-
-/**
- * @summary Trigger sandbox delayed notification
- */
-
-export function useGetApiSandboxDelayed<TData = Awaited<ReturnType<typeof getApiSandboxDelayed>>, TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError>(
- params?: GetApiSandboxDelayedParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxDelayed>>, TError, TData>, }
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getGetApiSandboxDelayedQueryOptions(params,options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }

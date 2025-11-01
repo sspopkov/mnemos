@@ -1,1 +1,848 @@
-{"openapi":"3.0.3","info":{"title":"Mnemos API","version":"1.0.0"},"components":{"securitySchemes":{"bearerAuth":{"type":"http","scheme":"bearer","bearerFormat":"JWT"}},"schemas":{"ApiError":{"title":"ApiError","additionalProperties":false,"type":"object","properties":{"message":{"type":"string"},"code":{"type":"string"},"details":{}},"required":["message"]},"HealthResponse":{"title":"HealthResponse","additionalProperties":false,"type":"object","properties":{"ok":{"type":"boolean"},"ts":{"format":"date-time","type":"string"}},"required":["ok","ts"]},"AuthUser":{"title":"AuthUser","additionalProperties":false,"type":"object","properties":{"id":{"minLength":1,"type":"string"},"email":{"format":"email","type":"string"},"createdAt":{"format":"date-time","type":"string"},"updatedAt":{"format":"date-time","type":"string"}},"required":["id","email","createdAt","updatedAt"]},"AuthResponse":{"title":"AuthResponse","additionalProperties":false,"type":"object","properties":{"accessToken":{"minLength":1,"type":"string"},"user":{"$ref":"#/components/schemas/AuthUser"}},"required":["accessToken","user"]},"RegisterRequest":{"title":"RegisterRequest","additionalProperties":false,"type":"object","properties":{"email":{"format":"email","type":"string"},"password":{"minLength":8,"description":"Минимум 8 символов","type":"string"}},"required":["email","password"]},"LoginRequest":{"title":"LoginRequest","additionalProperties":false,"type":"object","properties":{"email":{"format":"email","type":"string"},"password":{"minLength":1,"type":"string"}},"required":["email","password"]},"LogoutResponse":{"title":"LogoutResponse","additionalProperties":false,"type":"object","properties":{"ok":{"type":"boolean","enum":[true]}},"required":["ok"]},"RecordContent":{"anyOf":[{"type":"string"},{"type":"null"}]},"Record":{"additionalProperties":false,"type":"object","properties":{"id":{"minLength":1,"type":"string"},"title":{"type":"string"},"content":{"$ref":"#/components/schemas/RecordContent"},"createdAt":{"format":"date-time","type":"string"},"updatedAt":{"format":"date-time","type":"string"}},"required":["id","title","content","createdAt","updatedAt"]},"RecordList":{"type":"array","items":{"$ref":"#/components/schemas/Record"}},"RecordParams":{"additionalProperties":false,"type":"object","properties":{"id":{"minLength":1,"type":"string"}},"required":["id"]},"CreateRecordRequest":{"additionalProperties":false,"type":"object","properties":{"title":{"minLength":1,"type":"string"},"content":{"$ref":"#/components/schemas/RecordContent"}},"required":["title"]},"UpdateRecordRequest":{"additionalProperties":false,"type":"object","properties":{"title":{"minLength":1,"type":"string"},"content":{"$ref":"#/components/schemas/RecordContent"}}},"DeleteRecordResponse":{"additionalProperties":false,"type":"object","properties":{"ok":{"type":"boolean","enum":[true]}},"required":["ok"]},"SandboxResponse":{"title":"SandboxResponse","additionalProperties":false,"type":"object","properties":{"message":{"type":"string"}},"required":["message"]},"SandboxDelayQuery":{"title":"SandboxDelayQuery","additionalProperties":false,"type":"object","properties":{"delayMs":{"minimum":0,"maximum":60000,"description":"Искусственная задержка в миллисекундах","type":"integer"}}}}},"paths":{"/api/health":{"get":{"operationId":"getHealth","summary":"Health check","tags":["health"],"responses":{"200":{"description":"Default Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HealthResponse"}}}},"400":{"description":"Некорректные данные запроса","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Требуется аутентификация","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"403":{"description":"Доступ запрещён","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"404":{"description":"Ресурс не найден","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Конфликт данных","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"500":{"description":"Внутренняя ошибка сервера","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}},"/api/auth/register":{"post":{"operationId":"register","summary":"Register user","tags":["auth"],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/RegisterRequest"}}}},"responses":{"201":{"description":"Default Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AuthResponse"}}}},"400":{"description":"Некорректные данные запроса","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Требуется аутентификация","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"403":{"description":"Доступ запрещён","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"404":{"description":"Ресурс не найден","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Конфликт данных","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"500":{"description":"Внутренняя ошибка сервера","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}},"/api/auth/login":{"post":{"operationId":"login","summary":"Login user","tags":["auth"],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/LoginRequest"}}}},"responses":{"200":{"description":"Default Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AuthResponse"}}}},"400":{"description":"Некорректные данные запроса","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Требуется аутентификация","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"403":{"description":"Доступ запрещён","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"404":{"description":"Ресурс не найден","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Конфликт данных","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"500":{"description":"Внутренняя ошибка сервера","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}},"/api/auth/refresh":{"post":{"operationId":"refresh","summary":"Refresh access token","tags":["auth"],"responses":{"200":{"description":"Default Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AuthResponse"}}}},"400":{"description":"Некорректные данные запроса","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Требуется аутентификация","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"403":{"description":"Доступ запрещён","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"404":{"description":"Ресурс не найден","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Конфликт данных","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"500":{"description":"Внутренняя ошибка сервера","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}},"/api/auth/logout":{"post":{"operationId":"logout","summary":"Logout user","tags":["auth"],"responses":{"200":{"description":"Default Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/LogoutResponse"}}}},"400":{"description":"Некорректные данные запроса","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Требуется аутентификация","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"403":{"description":"Доступ запрещён","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"404":{"description":"Ресурс не найден","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Конфликт данных","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"500":{"description":"Внутренняя ошибка сервера","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}},"/api/auth/me":{"get":{"operationId":"getCurrentUser","summary":"Get current user","tags":["auth"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Default Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AuthUser"}}}},"400":{"description":"Некорректные данные запроса","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Требуется аутентификация","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"403":{"description":"Доступ запрещён","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"404":{"description":"Ресурс не найден","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Конфликт данных","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"500":{"description":"Внутренняя ошибка сервера","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}},"/api/records":{"get":{"operationId":"getRecords","summary":"List records","tags":["records"],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Default Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/RecordList"}}}},"400":{"description":"Некорректные данные запроса","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Требуется аутентификация","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"403":{"description":"Доступ запрещён","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"404":{"description":"Ресурс не найден","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Конфликт данных","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"500":{"description":"Внутренняя ошибка сервера","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}},"post":{"operationId":"createRecord","summary":"Create record","tags":["records"],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateRecordRequest"}}}},"security":[{"bearerAuth":[]}],"responses":{"201":{"description":"Default Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Record"}}}},"400":{"description":"Некорректные данные запроса","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Требуется аутентификация","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"403":{"description":"Доступ запрещён","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"404":{"description":"Ресурс не найден","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Конфликт данных","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"500":{"description":"Внутренняя ошибка сервера","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}},"/api/records/{id}":{"put":{"operationId":"updateRecord","summary":"Update record","tags":["records"],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateRecordRequest"}}}},"parameters":[{"schema":{"minLength":1,"type":"string"},"in":"path","name":"id","required":true}],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Default Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Record"}}}},"400":{"description":"Некорректные данные запроса","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Требуется аутентификация","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"403":{"description":"Доступ запрещён","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"404":{"description":"Ресурс не найден","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Конфликт данных","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"500":{"description":"Внутренняя ошибка сервера","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}},"delete":{"operationId":"deleteRecord","summary":"Delete record","tags":["records"],"parameters":[{"schema":{"minLength":1,"type":"string"},"in":"path","name":"id","required":true}],"security":[{"bearerAuth":[]}],"responses":{"200":{"description":"Default Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/DeleteRecordResponse"}}}},"400":{"description":"Некорректные данные запроса","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Требуется аутентификация","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"403":{"description":"Доступ запрещён","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"404":{"description":"Ресурс не найден","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Конфликт данных","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"500":{"description":"Внутренняя ошибка сервера","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}},"/api/sandbox/success":{"get":{"summary":"Trigger sandbox success notification","tags":["sandbox"],"responses":{"200":{"description":"Default Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SandboxResponse"}}}},"400":{"description":"Некорректные данные запроса","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Требуется аутентификация","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"403":{"description":"Доступ запрещён","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"404":{"description":"Ресурс не найден","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Конфликт данных","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"500":{"description":"Внутренняя ошибка сервера","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}},"/api/sandbox/failure":{"get":{"summary":"Trigger sandbox failure notification","tags":["sandbox"],"responses":{"400":{"description":"Некорректные данные запроса","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Требуется аутентификация","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"403":{"description":"Доступ запрещён","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"404":{"description":"Ресурс не найден","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Конфликт данных","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"500":{"description":"Внутренняя ошибка сервера","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}},"/api/sandbox/delayed":{"get":{"summary":"Trigger sandbox delayed notification","tags":["sandbox"],"parameters":[{"schema":{"minimum":0,"maximum":60000,"type":"integer"},"in":"query","name":"delayMs","required":false,"description":"Искусственная задержка в миллисекундах"}],"responses":{"200":{"description":"Default Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SandboxResponse"}}}},"400":{"description":"Некорректные данные запроса","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"401":{"description":"Требуется аутентификация","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"403":{"description":"Доступ запрещён","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"404":{"description":"Ресурс не найден","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"409":{"description":"Конфликт данных","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}},"500":{"description":"Внутренняя ошибка сервера","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiError"}}}}}}}}}
+{
+  "openapi": "3.0.3",
+  "info": { "title": "Mnemos API", "version": "1.0.0" },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+    },
+    "schemas": {
+      "ApiError": {
+        "title": "ApiError",
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "code": { "type": "string" },
+          "details": {}
+        },
+        "required": ["message"]
+      },
+      "HealthResponse": {
+        "title": "HealthResponse",
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean" },
+          "ts": { "format": "date-time", "type": "string" }
+        },
+        "required": ["ok", "ts"]
+      },
+      "AuthUser": {
+        "title": "AuthUser",
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "id": { "minLength": 1, "type": "string" },
+          "email": { "format": "email", "type": "string" },
+          "createdAt": { "format": "date-time", "type": "string" },
+          "updatedAt": { "format": "date-time", "type": "string" }
+        },
+        "required": ["id", "email", "createdAt", "updatedAt"]
+      },
+      "AuthResponse": {
+        "title": "AuthResponse",
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "accessToken": { "minLength": 1, "type": "string" },
+          "user": { "$ref": "#/components/schemas/AuthUser" }
+        },
+        "required": ["accessToken", "user"]
+      },
+      "RegisterRequest": {
+        "title": "RegisterRequest",
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "email": { "format": "email", "type": "string" },
+          "password": { "minLength": 8, "description": "Минимум 8 символов", "type": "string" }
+        },
+        "required": ["email", "password"]
+      },
+      "LoginRequest": {
+        "title": "LoginRequest",
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "email": { "format": "email", "type": "string" },
+          "password": { "minLength": 1, "type": "string" }
+        },
+        "required": ["email", "password"]
+      },
+      "LogoutResponse": {
+        "title": "LogoutResponse",
+        "additionalProperties": false,
+        "type": "object",
+        "properties": { "ok": { "type": "boolean", "enum": [true] } },
+        "required": ["ok"]
+      },
+      "RecordContent": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+      "Record": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "id": { "minLength": 1, "type": "string" },
+          "title": { "type": "string" },
+          "content": { "$ref": "#/components/schemas/RecordContent" },
+          "createdAt": { "format": "date-time", "type": "string" },
+          "updatedAt": { "format": "date-time", "type": "string" }
+        },
+        "required": ["id", "title", "content", "createdAt", "updatedAt"]
+      },
+      "RecordList": { "type": "array", "items": { "$ref": "#/components/schemas/Record" } },
+      "RecordParams": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": { "id": { "minLength": 1, "type": "string" } },
+        "required": ["id"]
+      },
+      "CreateRecordRequest": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "title": { "minLength": 1, "type": "string" },
+          "content": { "$ref": "#/components/schemas/RecordContent" }
+        },
+        "required": ["title"]
+      },
+      "UpdateRecordRequest": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "title": { "minLength": 1, "type": "string" },
+          "content": { "$ref": "#/components/schemas/RecordContent" }
+        }
+      },
+      "DeleteRecordResponse": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": { "ok": { "type": "boolean", "enum": [true] } },
+        "required": ["ok"]
+      },
+      "SandboxResponse": {
+        "title": "SandboxResponse",
+        "additionalProperties": false,
+        "type": "object",
+        "properties": { "message": { "type": "string" } },
+        "required": ["message"]
+      },
+      "SandboxDelayQuery": {
+        "title": "SandboxDelayQuery",
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "delayMs": {
+            "minimum": 0,
+            "maximum": 60000,
+            "description": "Искусственная задержка в миллисекундах",
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "getHealth",
+        "summary": "Health check",
+        "tags": ["health"],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/HealthResponse" } }
+            }
+          },
+          "400": {
+            "description": "Некорректные данные запроса",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "401": {
+            "description": "Требуется аутентификация",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещён",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "404": {
+            "description": "Ресурс не найден",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "409": {
+            "description": "Конфликт данных",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "operationId": "register",
+        "summary": "Register user",
+        "tags": ["auth"],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/RegisterRequest" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } }
+            }
+          },
+          "400": {
+            "description": "Некорректные данные запроса",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "401": {
+            "description": "Требуется аутентификация",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещён",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "404": {
+            "description": "Ресурс не найден",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "409": {
+            "description": "Конфликт данных",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "operationId": "login",
+        "summary": "Login user",
+        "tags": ["auth"],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } }
+            }
+          },
+          "400": {
+            "description": "Некорректные данные запроса",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "401": {
+            "description": "Требуется аутентификация",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещён",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "404": {
+            "description": "Ресурс не найден",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "409": {
+            "description": "Конфликт данных",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "operationId": "refresh",
+        "summary": "Refresh access token",
+        "tags": ["auth"],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } }
+            }
+          },
+          "400": {
+            "description": "Некорректные данные запроса",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "401": {
+            "description": "Требуется аутентификация",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещён",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "404": {
+            "description": "Ресурс не найден",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "409": {
+            "description": "Конфликт данных",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "logout",
+        "summary": "Logout user",
+        "tags": ["auth"],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/LogoutResponse" } }
+            }
+          },
+          "400": {
+            "description": "Некорректные данные запроса",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "401": {
+            "description": "Требуется аутентификация",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещён",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "404": {
+            "description": "Ресурс не найден",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "409": {
+            "description": "Конфликт данных",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "operationId": "getCurrentUser",
+        "summary": "Get current user",
+        "tags": ["auth"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AuthUser" } }
+            }
+          },
+          "400": {
+            "description": "Некорректные данные запроса",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "401": {
+            "description": "Требуется аутентификация",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещён",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "404": {
+            "description": "Ресурс не найден",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "409": {
+            "description": "Конфликт данных",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/records": {
+      "get": {
+        "operationId": "getRecords",
+        "summary": "List records",
+        "tags": ["records"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/RecordList" } }
+            }
+          },
+          "400": {
+            "description": "Некорректные данные запроса",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "401": {
+            "description": "Требуется аутентификация",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещён",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "404": {
+            "description": "Ресурс не найден",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "409": {
+            "description": "Конфликт данных",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createRecord",
+        "summary": "Create record",
+        "tags": ["records"],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreateRecordRequest" } }
+          }
+        },
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Record" } }
+            }
+          },
+          "400": {
+            "description": "Некорректные данные запроса",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "401": {
+            "description": "Требуется аутентификация",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещён",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "404": {
+            "description": "Ресурс не найден",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "409": {
+            "description": "Конфликт данных",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/{id}": {
+      "put": {
+        "operationId": "updateRecord",
+        "summary": "Update record",
+        "tags": ["records"],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UpdateRecordRequest" } }
+          }
+        },
+        "parameters": [
+          {
+            "schema": { "minLength": 1, "type": "string" },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Record" } }
+            }
+          },
+          "400": {
+            "description": "Некорректные данные запроса",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "401": {
+            "description": "Требуется аутентификация",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещён",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "404": {
+            "description": "Ресурс не найден",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "409": {
+            "description": "Конфликт данных",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteRecord",
+        "summary": "Delete record",
+        "tags": ["records"],
+        "parameters": [
+          {
+            "schema": { "minLength": 1, "type": "string" },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DeleteRecordResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Некорректные данные запроса",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "401": {
+            "description": "Требуется аутентификация",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещён",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "404": {
+            "description": "Ресурс не найден",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "409": {
+            "description": "Конфликт данных",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/sandbox/success": {
+      "get": {
+        "summary": "Trigger sandbox success notification",
+        "tags": ["sandbox"],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SandboxResponse" } }
+            }
+          },
+          "400": {
+            "description": "Некорректные данные запроса",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "401": {
+            "description": "Требуется аутентификация",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещён",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "404": {
+            "description": "Ресурс не найден",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "409": {
+            "description": "Конфликт данных",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/sandbox/failure": {
+      "get": {
+        "summary": "Trigger sandbox failure notification",
+        "tags": ["sandbox"],
+        "responses": {
+          "400": {
+            "description": "Некорректные данные запроса",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "401": {
+            "description": "Требуется аутентификация",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещён",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "404": {
+            "description": "Ресурс не найден",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "409": {
+            "description": "Конфликт данных",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/sandbox/delayed": {
+      "get": {
+        "summary": "Trigger sandbox delayed notification",
+        "tags": ["sandbox"],
+        "parameters": [
+          {
+            "schema": { "minimum": 0, "maximum": 60000, "type": "integer" },
+            "in": "query",
+            "name": "delayMs",
+            "required": false,
+            "description": "Искусственная задержка в миллисекундах"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SandboxResponse" } }
+            }
+          },
+          "400": {
+            "description": "Некорректные данные запроса",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "401": {
+            "description": "Требуется аутентификация",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещён",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "404": {
+            "description": "Ресурс не найден",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "409": {
+            "description": "Конфликт данных",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

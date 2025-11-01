@@ -115,7 +115,11 @@ type IssueTokensParams = {
   user: Pick<User, 'id' | 'email' | 'createdAt' | 'updatedAt'>;
 };
 
-export const issueTokens = async ({ req, reply, user }: IssueTokensParams): Promise<AuthResponse> => {
+export const issueTokens = async ({
+  req,
+  reply,
+  user,
+}: IssueTokensParams): Promise<AuthResponse> => {
   const accessToken = await reply.jwtSign({ sub: user.id, email: user.email });
   const refreshToken = randomBytes(48).toString('hex');
 
