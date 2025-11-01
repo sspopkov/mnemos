@@ -9,7 +9,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import axios from 'axios';
 import type { ChangeEvent } from 'react';
 import { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -21,13 +20,9 @@ import {
   getGetApiSandboxDelayedQueryKey,
   getGetApiSandboxSuccessQueryKey,
   getGetApiSandboxFailureQueryKey,
+  type SandboxResponse,
 } from '../api';
 import { getErrorMessage } from '../utils/errors';
-
-function isAbortError(err: unknown) {
-  // axios v1: axios.isCancel; fetch/DOM: name === 'AbortError'
-  return axios.isCancel(err) || (err instanceof DOMException && err.name === 'AbortError');
-}
 
 const SandboxPage = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -37,7 +32,7 @@ const SandboxPage = () => {
   const clampedDelayMs = Math.min(Math.max(Math.round(delaySeconds * 1000), 0), 60_000);
 
   // Кнопочные запросы без onSuccess/onError в options: обрабатываем результат после refetch().
-  const successQuery = useGetApiSandboxSuccess<{ message: string }>({
+  const successQuery = useGetApiSandboxSuccess<SandboxResponse>({
     query: {
       queryKey: getGetApiSandboxSuccessQueryKey(),
       enabled: false,
@@ -51,7 +46,6 @@ const SandboxPage = () => {
       queryKey: getGetApiSandboxFailureQueryKey(),
       enabled: false,
       retry: false,
-      select: (resp) => resp.data, // теперь successQuery.data === { message: string }
     },
   });
 
@@ -74,7 +68,7 @@ const SandboxPage = () => {
   };
 
   // Долгий запрос с отменой
-  const delayedQuery = useGetApiSandboxDelayed<{ message: string }>(
+  const delayedQuery = useGetApiSandboxDelayed<SandboxResponse>(
     { delayMs: clampedDelayMs },
     {
       query: {
@@ -87,20 +81,24 @@ const SandboxPage = () => {
   );
 
   const startDelayed = useCallback(async () => {
+    const key = getGetApiSandboxDelayedQueryKey();
+    queryClient.removeQueries({ queryKey: key }); // сбросить кэш, чтобы не вернуть старые данные
+
     const { data, error } = await delayedQuery.refetch();
+
     if (error) {
-      if (!isAbortError(error)) {
-        enqueueSnackbar(getErrorMessage(error), { variant: 'error' });
-      }
+      enqueueSnackbar(getErrorMessage(error), { variant: 'error' });
       return;
     }
+
     if (data) {
       enqueueSnackbar(data.message ?? 'Готово', { variant: 'success' });
     }
-  }, [delayedQuery, enqueueSnackbar]);
+  }, [delayedQuery, enqueueSnackbar, queryClient]);
 
-  const cancelDelayed = useCallback(() => {
-    queryClient.cancelQueries({ queryKey: getGetApiSandboxDelayedQueryKey() });
+  const cancelDelayed = useCallback(async () => {
+    const key = getGetApiSandboxDelayedQueryKey();
+    await queryClient.cancelQueries({ queryKey: key });
   }, [queryClient]);
 
   const onDelayChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -116,7 +114,7 @@ const SandboxPage = () => {
       <Stack spacing={3}>
         <Box>
           <Typography variant="h4" fontWeight={700} gutterBottom>
-            Песочница уведомлений
+            Песочница
           </Typography>
           <Typography variant="body1" color="text.secondary">
             В dev-режиме: проверка уведомлений и отмены запросов.
