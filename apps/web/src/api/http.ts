@@ -74,7 +74,10 @@ api.interceptors.response.use(
 );
 
 export const httpClient = <T = unknown, R = AxiosResponse<T>>(
-  config: AxiosRequestConfig,
+  config: AxiosRequestConfig & { signal?: AbortSignal },
 ): Promise<R> => {
-  return api.request<T, R>(config);
+  return api.request<T, R>({
+    ...config,
+    signal: config.signal,
+  });
 };
