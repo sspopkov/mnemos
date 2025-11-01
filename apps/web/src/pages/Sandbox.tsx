@@ -9,7 +9,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import type { ChangeEvent } from 'react';
 import { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
@@ -23,6 +22,7 @@ import {
   type SandboxResponse,
 } from '../api';
 import { getErrorMessage } from '../utils/errors';
+import { useClampedNumberInput } from '../utils/useClampedNumberInput';
 
 const SandboxPage = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -101,11 +101,7 @@ const SandboxPage = () => {
     await queryClient.cancelQueries({ queryKey: key });
   }, [queryClient]);
 
-  const onDelayChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const v = Number(e.target.value);
-    if (Number.isNaN(v)) return setDelaySeconds(0);
-    setDelaySeconds(Math.min(Math.max(v, 0), 60));
-  }, []);
+  const onDelayChange = useClampedNumberInput(setDelaySeconds, 0, 60);
 
   const isDelayedFetching = delayedQuery.fetchStatus === 'fetching';
 
