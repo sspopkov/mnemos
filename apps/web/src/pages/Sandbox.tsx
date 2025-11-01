@@ -12,6 +12,7 @@ import {
 import axios from 'axios';
 import type { ChangeEvent } from 'react';
 import { useCallback, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 import { getErrorMessage } from '../utils/errors';
 
@@ -19,13 +20,14 @@ import { getErrorMessage } from '../utils/errors';
 import {
   useGetApiSandboxSuccess,
   useGetApiSandboxFailure,
+  useGetApiSandboxDelayed,
   getGetApiSandboxSuccessQueryKey,
   getGetApiSandboxFailureQueryKey,
-  getApiSandboxDelayed,
 } from '../api';
 
 const SandboxPage = () => {
   const { enqueueSnackbar } = useSnackbar();
+  const queryClient = useQueryClient();
   const [delaySeconds, setDelaySeconds] = useState(5);
   const [delayedState, setDelayedState] = useState<
     | { status: 'idle' }
@@ -34,7 +36,19 @@ const SandboxPage = () => {
     | { status: 'error'; message: string }
     | { status: 'cancelled'; message: string }
   >({ status: 'idle' });
-  const [delayedController, setDelayedController] = useState<AbortController | null>(null);
+  const clampedDelayMs = Math.min(Math.max(Math.round(delaySeconds * 1000), 0), 60000);
+
+  const delayedQuery = useGetApiSandboxDelayed<{ message: string }>({
+    delayMs: clampedDelayMs,
+  }, {
+    query: {
+      enabled: false,
+      retry: false,
+      select: (response) => response.data,
+    },
+  });
+
+  const { refetch: refetchDelayed, fetchStatus: delayedFetchStatus, queryKey: delayedQueryKey } = delayedQuery;
 
   // Запрос «по кнопке» + маппинг на data
   const successQuery = useGetApiSandboxSuccess<{ message: string }, unknown>({
@@ -88,41 +102,36 @@ const SandboxPage = () => {
   const startDelayedRequest = useCallback(async () => {
     setDelayedState({ status: 'pending', message: 'Выполняем запрос…' });
 
-    const abortController = new AbortController();
+    const result = await refetchDelayed();
 
-    setDelayedController((current) => {
-      current?.abort();
-      return abortController;
-    });
-
-    const clampedDelay = Math.min(Math.max(Math.round(delaySeconds * 1000), 0), 60000);
-
-    try {
-      const response = await getApiSandboxDelayed(
-        { delayMs: clampedDelay },
-        abortController.signal,
-      );
-
-      setDelayedState({ status: 'success', message: response.data.message });
-    } catch (error) {
-      if (axios.isCancel(error)) {
+    if (result.error) {
+      if (axios.isCancel(result.error)) {
         setDelayedState({ status: 'cancelled', message: 'Запрос отменён пользователем' });
       } else {
-        setDelayedState({ status: 'error', message: getErrorMessage(error) });
+        setDelayedState({ status: 'error', message: getErrorMessage(result.error) });
       }
-    } finally {
-      setDelayedController((current) => (current === abortController ? null : current));
+
+      return;
     }
-  }, [delaySeconds]);
+
+    if (result.data) {
+      setDelayedState({ status: 'success', message: result.data.message ?? 'Готово' });
+      return;
+    }
+
+    setDelayedState({ status: 'error', message: 'Не удалось получить ответ от сервера' });
+  }, [refetchDelayed]);
 
   const cancelDelayedRequest = useCallback(() => {
-    setDelayedController((current) => {
-      current?.abort();
-      return current;
-    });
-  }, []);
+    if (delayedFetchStatus !== 'fetching') {
+      return;
+    }
 
-  const isDelayedPending = delayedState.status === 'pending';
+    queryClient.cancelQueries({ queryKey: delayedQueryKey });
+    setDelayedState({ status: 'cancelled', message: 'Запрос отменён пользователем' });
+  }, [delayedFetchStatus, queryClient, delayedQueryKey]);
+
+  const isDelayedPending = delayedState.status === 'pending' || delayedFetchStatus === 'fetching';
   const delayedAlertSeverity =
     delayedState.status === 'success' ? 'success' : delayedState.status === 'error' ? 'error' : 'info';
 
@@ -201,14 +210,14 @@ const SandboxPage = () => {
                   color="inherit"
                   onClick={cancelDelayedRequest}
                   fullWidth
-                  disabled={!delayedController}
+                  disabled={delayedFetchStatus !== 'fetching'}
                 >
                   Отменить
                 </Button>
               </Stack>
             </Stack>
 
-            {isDelayedPending && <LinearProgress />}
+            {delayedFetchStatus === 'fetching' && <LinearProgress />}
 
             {delayedState.status !== 'idle' && (
               <Alert severity={delayedAlertSeverity}>{delayedState.message}</Alert>
