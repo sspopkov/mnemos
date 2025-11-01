@@ -32,7 +32,7 @@ const navigation: NavigationItem[] = [
         {
           label: 'Песочница',
           href: '/sandbox',
-          description: 'Тест уведомлений',
+          description: 'Проверки API и UI',
         } satisfies NavigationItem,
       ]
     : []),

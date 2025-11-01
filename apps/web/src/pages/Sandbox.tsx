@@ -1,39 +1,55 @@
-import { Alert, Box, Button, Container, Paper, Stack, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  Container,
+  LinearProgress,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { useCallback, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
-import { getErrorMessage } from '../utils/errors';
-
-// ИМЕННО сгенерированные хуки Orval:
 import {
   useGetApiSandboxSuccess,
   useGetApiSandboxFailure,
+  useGetApiSandboxDelayed,
+  getGetApiSandboxDelayedQueryKey,
   getGetApiSandboxSuccessQueryKey,
   getGetApiSandboxFailureQueryKey,
+  type SandboxResponse,
 } from '../api';
+import { getErrorMessage } from '../utils/errors';
+import { useClampedNumberInput } from '../utils/useClampedNumberInput';
 
 const SandboxPage = () => {
   const { enqueueSnackbar } = useSnackbar();
+  const queryClient = useQueryClient();
 
-  // Запрос «по кнопке» + маппинг на data
-  const successQuery = useGetApiSandboxSuccess<{ message: string }, unknown>({
+  const [delaySeconds, setDelaySeconds] = useState(5);
+  const clampedDelayMs = Math.min(Math.max(Math.round(delaySeconds * 1000), 0), 60_000);
+
+  // Кнопочные запросы без onSuccess/onError в options: обрабатываем результат после refetch().
+  const successQuery = useGetApiSandboxSuccess<SandboxResponse>({
     query: {
       queryKey: getGetApiSandboxSuccessQueryKey(),
       enabled: false,
       retry: false,
-      select: (resp) => resp.data, // теперь successQuery.data === { message: string }
+      select: (response) => response.data,
     },
   });
 
-  const failureQuery = useGetApiSandboxFailure<unknown, unknown>({
+  const failureQuery = useGetApiSandboxFailure({
     query: {
       queryKey: getGetApiSandboxFailureQueryKey(),
       enabled: false,
       retry: false,
-      // для фейла можно тоже вернуть data, но нам важнее error
-      // select: (resp) => resp.data,
     },
   });
 
-  const isLoading = successQuery.isFetching || failureQuery.isFetching;
+  const isAnyShortLoading = successQuery.isFetching || failureQuery.isFetching;
 
   const runSuccess = async () => {
     const { data, error } = await successQuery.refetch();
@@ -51,15 +67,53 @@ const SandboxPage = () => {
     enqueueSnackbar(getErrorMessage(error), { variant: 'error' });
   };
 
+  // Долгий запрос с отменой
+  const delayedQuery = useGetApiSandboxDelayed<SandboxResponse>(
+    { delayMs: clampedDelayMs },
+    {
+      query: {
+        queryKey: getGetApiSandboxDelayedQueryKey(),
+        enabled: false,
+        retry: false,
+        select: (r) => r.data,
+      },
+    },
+  );
+
+  const startDelayed = useCallback(async () => {
+    const key = getGetApiSandboxDelayedQueryKey();
+    queryClient.removeQueries({ queryKey: key }); // сбросить кэш, чтобы не вернуть старые данные
+
+    const { data, error } = await delayedQuery.refetch();
+
+    if (error) {
+      enqueueSnackbar(getErrorMessage(error), { variant: 'error' });
+      return;
+    }
+
+    if (data) {
+      enqueueSnackbar(data.message ?? 'Готово', { variant: 'success' });
+    }
+  }, [delayedQuery, enqueueSnackbar, queryClient]);
+
+  const cancelDelayed = useCallback(async () => {
+    const key = getGetApiSandboxDelayedQueryKey();
+    await queryClient.cancelQueries({ queryKey: key });
+  }, [queryClient]);
+
+  const onDelayChange = useClampedNumberInput(setDelaySeconds, 0, 60);
+
+  const isDelayedFetching = delayedQuery.fetchStatus === 'fetching';
+
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
       <Stack spacing={3}>
         <Box>
           <Typography variant="h4" fontWeight={700} gutterBottom>
-            Песочница уведомлений
+            Песочница
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Страница доступна только в режиме разработки и помогает проверить уведомления.
+            В dev-режиме: проверка уведомлений и отмены запросов.
           </Typography>
         </Box>
 
@@ -69,19 +123,87 @@ const SandboxPage = () => {
               Тестовые запросы
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Нажмите кнопку, чтобы отправить запрос и увидеть уведомление.
+              Нажмите кнопку, чтобы увидеть уведомление.
             </Typography>
 
             <Stack direction="row" spacing={2}>
-              <Button variant="contained" color="success" onClick={runSuccess} disabled={isLoading}>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={runSuccess}
+                disabled={isAnyShortLoading}
+              >
                 Успешный запрос
               </Button>
-              <Button variant="contained" color="error" onClick={runFailure} disabled={isLoading}>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={runFailure}
+                disabled={isAnyShortLoading}
+              >
                 Неуспешный запрос
               </Button>
             </Stack>
 
-            {isLoading && <Alert severity="info">Выполняем запрос…</Alert>}
+            {isAnyShortLoading && <Alert severity="info">Выполняем запрос…</Alert>}
+          </Stack>
+        </Paper>
+
+        <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider' }}>
+          <Stack spacing={2}>
+            <Typography variant="h6" fontWeight={600}>
+              Проверка отмены долгих запросов
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Запустите искусственно долгий запрос и отмените его.
+            </Typography>
+
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={2}
+              alignItems={{ xs: 'stretch', sm: 'flex-end' }}
+            >
+              <TextField
+                type="number"
+                label="Задержка, сек"
+                value={delaySeconds}
+                onChange={onDelayChange}
+                inputProps={{ min: 0, max: 60 }}
+                helperText="Максимум 60 секунд"
+                size="small"
+                sx={{ width: { xs: '100%', sm: 200 } }}
+              />
+
+              <Stack direction="row" spacing={2} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+                <Button
+                  variant="contained"
+                  onClick={startDelayed}
+                  fullWidth
+                  disabled={isDelayedFetching}
+                >
+                  Запустить долгий запрос
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  onClick={cancelDelayed}
+                  fullWidth
+                  disabled={!isDelayedFetching}
+                >
+                  Отменить
+                </Button>
+              </Stack>
+            </Stack>
+
+            {isDelayedFetching && <LinearProgress />}
+
+            {/* Для ясности можно отрисовать итог без коллбеков */}
+            {delayedQuery.isError && !isDelayedFetching && (
+              <Alert severity="error">{getErrorMessage(delayedQuery.error)}</Alert>
+            )}
+            {delayedQuery.isSuccess && !isDelayedFetching && (
+              <Alert severity="success">{delayedQuery.data?.message ?? 'Готово'}</Alert>
+            )}
           </Stack>
         </Paper>
       </Stack>

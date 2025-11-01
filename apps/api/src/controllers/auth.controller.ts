@@ -128,10 +128,7 @@ export const logoutUser = async (
   return { ok: true };
 };
 
-export const getCurrentUser = async (
-  app: FastifyInstance,
-  userId: string,
-): Promise<AuthUser> => {
+export const getCurrentUser = async (app: FastifyInstance, userId: string): Promise<AuthUser> => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
     throw app.httpErrors.notFound('User not found');

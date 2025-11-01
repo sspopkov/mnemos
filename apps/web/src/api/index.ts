@@ -16,15 +16,15 @@ import type {
 } from '@tanstack/react-query';
 
 import { httpClient } from './http';
-export interface HealthResponse {
-  ok: boolean;
-  ts: string;
-}
-
 export interface ApiError {
   message: string;
   code?: string;
   details?: unknown;
+}
+
+export interface HealthResponse {
+  ok: boolean;
+  ts: string;
 }
 
 export interface AuthUser {
@@ -97,6 +97,24 @@ export interface DeleteRecordResponse {
 export interface SandboxResponse {
   message: string;
 }
+
+export interface SandboxDelayQuery {
+  /**
+   * Искусственная задержка в миллисекундах
+   * @minimum 0
+   * @maximum 60000
+   */
+  delayMs?: number;
+}
+
+export type GetApiSandboxDelayedParams = {
+  /**
+   * Искусственная задержка в миллисекундах
+   * @minimum 0
+   * @maximum 60000
+   */
+  delayMs?: number;
+};
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -860,6 +878,78 @@ export function useGetApiSandboxFailure<
   query?: UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxFailure>>, TError, TData>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetApiSandboxFailureQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Trigger sandbox delayed notification
+ */
+export const getApiSandboxDelayed = (params?: GetApiSandboxDelayedParams, signal?: AbortSignal) => {
+  return httpClient<SandboxResponse>({
+    url: `/api/sandbox/delayed`,
+    method: 'GET',
+    params,
+    signal,
+  });
+};
+
+export const getGetApiSandboxDelayedQueryKey = (params?: GetApiSandboxDelayedParams) => {
+  return [`/api/sandbox/delayed`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetApiSandboxDelayedQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiSandboxDelayed>>,
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+>(
+  params?: GetApiSandboxDelayedParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxDelayed>>, TError, TData>;
+  },
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetApiSandboxDelayedQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiSandboxDelayed>>> = ({ signal }) =>
+    getApiSandboxDelayed(params, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiSandboxDelayed>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetApiSandboxDelayedQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiSandboxDelayed>>
+>;
+export type GetApiSandboxDelayedQueryError =
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError
+  | ApiError;
+
+/**
+ * @summary Trigger sandbox delayed notification
+ */
+
+export function useGetApiSandboxDelayed<
+  TData = Awaited<ReturnType<typeof getApiSandboxDelayed>>,
+  TError = ApiError | ApiError | ApiError | ApiError | ApiError | ApiError,
+>(
+  params?: GetApiSandboxDelayedParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof getApiSandboxDelayed>>, TError, TData>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetApiSandboxDelayedQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

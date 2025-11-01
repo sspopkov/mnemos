@@ -2,11 +2,7 @@ import { Type } from '@sinclair/typebox';
 import type { FastifyInstance } from 'fastify';
 
 import { errorResponses } from '../plugins/errors';
-import {
-  HealthResponseSchema,
-  healthSchemas,
-  type HealthResponse,
-} from '../schemas/health.schema';
+import { HealthResponseSchema, healthSchemas, type HealthResponse } from '../schemas/health.schema';
 import { getHealthStatus } from '../controllers/health.controller';
 
 export async function healthRoutes(app: FastifyInstance) {
